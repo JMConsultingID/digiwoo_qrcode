@@ -7,8 +7,8 @@
  * Text Domain: digiwoo-qrcode
  */
 
-require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCode.php';
 require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCodeInterface.php';
+require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCode.php';
 
 
 if ( ! defined( 'ABSPATH' ) ) {
