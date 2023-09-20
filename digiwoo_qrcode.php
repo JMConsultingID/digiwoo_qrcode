@@ -51,6 +51,11 @@ function digiwoo_qrcode_init() {
                     'default'     => __( 'PIX QRCode', 'digiwoo-qrcode' ),
                     'desc_tip'    => true,
                 ),
+                'description' => array(
+                    'title' => 'Description',
+                    'type' => 'textarea',
+                    'default' => 'Pay with PIX using QRCode.'
+                ),
                 'token' => array(
                     'title'       => __( 'Secret Token', 'digiwoo-qrcode' ),
                     'type'        => 'password', // Setting this as a password field will hide the actual value.
@@ -135,17 +140,11 @@ function digiwoo_qrcode_init() {
         }
     }
 
-    add_action('woocommerce_thankyou', 'display_qrcode_after_order', 10, 1);
-    function display_qrcode_after_order($order_id) {
-        $dataUri = get_post_meta($order_id, '_pix_qrcode_data_uri', true);
-
-        if ($dataUri) {
-            echo '<h2>PIX QRCode Payment</h2>';
-            echo '<p>Please scan the below QR code to complete your payment:</p>';
-            echo '<img src="' . esc_attr($dataUri) . '" alt="PIX Payment QR Code" />';
-        }
+    // Add this function to your digiwoo_qrcode.php
+    function digiwoo_enqueue_styles() {
+        wp_enqueue_style('digiwoo_qrcode_css', plugin_dir_url(__FILE__) . 'css/main.css', array(), '1.0');
     }
-
+    add_action('wp_enqueue_scripts', 'digiwoo_enqueue_styles');
 
 
     add_filter( 'woocommerce_payment_gateways', 'add_pix_qrcode_gateway' );
@@ -153,5 +152,24 @@ function digiwoo_qrcode_init() {
     function add_pix_qrcode_gateway( $methods ) {
         $methods[] = 'WC_PIX_QRCODE';
         return $methods;
+    }
+
+    // AJAX Handling
+    add_action('wp_ajax_check_qrcode_payment', 'digiwoo_check_qrcode_payment');
+    add_action('wp_ajax_nopriv_check_qrcode_payment', 'digiwoo_check_qrcode_payment');
+
+    function digiwoo_check_qrcode_payment() {
+        echo json_encode(array('status' => 'completed'));
+        wp_die();
+    }
+
+    // Enqueue Script
+    add_action('woocommerce_before_checkout_form', 'digiwoo_enqueue_scripts');
+
+    function digiwoo_enqueue_scripts() {
+        wp_enqueue_script('digiwoo_qrcode_js', plugin_dir_url(__FILE__) . 'js/digiwoo_qrcode.js', array('jquery'), '1.0', true);
+        wp_localize_script('digiwoo_qrcode_js', 'digiwoo_params', array(
+            'ajax_url' => admin_url('admin-ajax.php')
+        ));
     }
 }
