@@ -1,143 +1,146 @@
 <?php
 /**
- * Plugin Name: DigiWoo QRCode
- * Description: WooCommerce Payment Gateway for PIX QRCode
+ * Plugin Name: DigiWoo QRCode for WooCommerce
+ * Description: Adds a PIX QRCode payment method to WooCommerce.
  * Version: 1.0
- * Author: Ardika JM-Consulting
- * Text Domain: digiwoo-qrcode
+ * Author: Your Name
  */
 
-require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCode.php';
-require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCodeInterface.php';
-
-
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-add_action( 'plugins_loaded', 'digiwoo_qrcode_init', 0 );
+// Check if WooCommerce is active
+if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+    add_action('plugins_loaded', 'digiwoo_qrcode_init', 0);
 
-function digiwoo_qrcode_init() {
-    if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
-
-    class WC_PIX_QRCODE extends WC_Payment_Gateway {
-        public function __construct() {
-            $this->id                 = 'pix_qrcode';
-            $this->icon               = ''; // URL to your icon if you have one.
-            $this->has_fields         = false;
-            $this->method_title       = __( 'PIX QRCode', 'digiwoo-qrcode' );
-            $this->method_description = __( 'Payment gateway for PIX QRCode', 'digiwoo-qrcode' );
-
-            $this->init_form_fields();
-            $this->init_settings();
-
-            $this->title = $this->get_option( 'title' );
-
-            add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+    function digiwoo_qrcode_init() {
+        if (!class_exists('WC_Payment_Gateway')) {
+            return; // Exit if WooCommerce is not loaded
         }
 
-        public function init_form_fields() {
-            $this->form_fields = array(
-                'enabled' => array(
-                    'title'   => __( 'Enable/Disable', 'digiwoo-qrcode' ),
-                    'type'    => 'checkbox',
-                    'label'   => __( 'Enable PIX QRCode Payment', 'digiwoo-qrcode' ),
-                    'default' => 'yes'
-                ),
-                'title' => array(
-                    'title'       => __( 'Title', 'digiwoo-qrcode' ),
-                    'type'        => 'text',
-                    'description' => __( 'This controls the title which the user sees during checkout.', 'digiwoo-qrcode' ),
-                    'default'     => __( 'PIX QRCode', 'digiwoo-qrcode' ),
-                    'desc_tip'    => true,
-                ),
-                'token' => array(
-                    'title'       => __( 'Secret Token', 'digiwoo-qrcode' ),
-                    'type'        => 'password', // Setting this as a password field will hide the actual value.
-                    'description' => __( 'Enter the secret token for the PIX QRCode API.', 'digiwoo-qrcode' ),
-                    'default'     => '',
-                    'desc_tip'    => true,
-                )
-                // Add other configuration options as needed
-            );
-        }
+        // Main gateway class
+        class WC_PIX_QRCODE extends WC_Payment_Gateway {
 
-        public function process_payment( $order_id ) {
-            global $woocommerce;
-            $order = wc_get_order( $order_id );
+            public function __construct() {
+                $this->id = 'pix_qrcode';
+                $this->icon = ''; // URL to an icon for this method.
+                $this->has_fields = false;
+                $this->method_title = 'PIX QRCode';
+                $this->method_description = 'Accept payments via PIX QRCode.';
 
-            $payload = array(
-                'payer' => array(
-                    'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-                    'taxId'  => $order->get_billing_company()
-                ),
-                'amount' => $order->get_total()
-            );
+                // Load the settings.
+                $this->init_form_fields();
+                $this->init_settings();
 
-            $response = wp_remote_post( 'https://api.sqala.tech/core/v1/pix-qrcode-payments', array(
-                'method'    => 'POST',
-                'headers'   => array(
-                    'accept'        => 'application/json',
-                    'authorization' => 'Bearer ' . $this->get_option( 'token' ),
-                    'content-type'  => 'application/json'
-                ),
-                'body' => json_encode( $payload )
-            ) );
+                // Define user set variables.
+                $this->title = $this->get_option('title');
+                $this->token = $this->get_option('token');
 
-            if ( is_wp_error( $response ) ) {
-                wc_add_notice( 'There was an error processing your payment', 'error' );
-                return;
+                // Save settings.
+                add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
             }
 
-            $body = json_decode( wp_remote_retrieve_body( $response ), true );
-
-            if ( isset( $body['payload'] ) ) {
-                // Generate QR Code
-                $qrCode = new \Endroid\QrCode\QrCode($body['payload']);
-                $qrCode->setSize(200); // Size of QR Code, adjust as needed
-
-                // Save QR Code to temp file
-                $temp_file = tempnam(sys_get_temp_dir(), 'QR') . '.png';
-                $qrCode->writeFile($temp_file);
-
-                // Save temp file URL to order meta
-                update_post_meta($order_id, '_pix_qrcode_url', $temp_file);
-
-                // Display QR Code to customer using some frontend mechanism. This part needs more logic to show QR code to user.
-                // For now, we will just save the QR code URL to the order and redirect the user.
-
-                $order->update_status( 'on-hold', __( 'Awaiting PIX QRCode payment', 'digiwoo-qrcode' ) );
-                $order->reduce_order_stock();
-
-                $woocommerce->cart->empty_cart();
-
-                return array(
-                    'result'   => 'success',
-                    'redirect' => $this->get_return_url( $order )
+            public function init_form_fields() {
+                $this->form_fields = array(
+                    'enabled' => array(
+                        'title'   => __('Enable/Disable', 'woocommerce'),
+                        'type'    => 'checkbox',
+                        'label'   => __('Enable PIX QRCode Payment', 'woocommerce'),
+                        'default' => 'no'
+                    ),
+                    'title' => array(
+                        'title'       => __('Title', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('This controls the title the user sees during checkout.', 'woocommerce'),
+                        'default'     => __('PIX QRCode', 'woocommerce'),
+                        'desc_tip'    => true,
+                    ),
+                    'token' => array(
+                        'title'       => __('API Token', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('This is the API token provided by sqala.tech.', 'woocommerce'),
+                        'default'     => '',
+                        'desc_tip'    => true,
+                    ),
                 );
-            } else {
-                wc_add_notice( 'There was an error processing your payment', 'error' );
+            }
+
+            public function process_payment($order_id) {
+                $order = wc_get_order($order_id);
+
+                $payload = array(
+                    'payer'  => array(
+                        'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+                        'taxId'  => '37515868066'
+                    ),
+                'amount' => intval($order->get_total() * 100)
+                );
+
+                $response = wp_remote_post('https://api.sqala.tech/core/v1/pix-qrcode-payments', array(
+                    'headers' => array(
+                        'accept'        => 'application/json',
+                        'authorization' => 'Bearer ' . $this->token,
+                        'content-type'  => 'application/json',
+                    ),
+                    'body'    => json_encode($payload),
+                ));
+
+                if (!is_wp_error($response)) {
+                    $body = json_decode(wp_remote_retrieve_body($response), true);
+
+                    if (isset($body['payload'])) {
+                        // Set the order status to 'on-hold' and reduce stock levels (if applicable)
+                        $order->update_status('on-hold', __('Awaiting PIX payment.', 'woocommerce'));
+
+                        // Add order note with the payment payload
+                        $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
+
+                        // Remove cart contents
+                        WC()->cart->empty_cart();
+
+                        // Redirect to thank you page with the payload for QR code generation
+                        return array(
+                            'result'   => 'success',
+                            'redirect' => $this->get_return_url($order) . '&pix_payload=' . urlencode($body['payload']),
+                        );
+                    }
+                }
+
+                // Add notice for the user in case of error
+                wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'woocommerce'), 'error');
+
                 return;
             }
         }
-    }
 
-    add_action('woocommerce_thankyou', 'display_qrcode_after_order', 10, 1);
-    function display_qrcode_after_order($order_id) {
-        $qr_code_url = get_post_meta($order_id, '_pix_qrcode_url', true);
+        // Add the gateway to WooCommerce
+        add_filter('woocommerce_payment_gateways', 'add_digiwoo_qrcode_gateway');
 
-        if ($qr_code_url) {
-            echo '<h2>PIX QRCode Payment</h2>';
-            echo '<p>Please scan the below QR code to complete your payment:</p>';
-            echo '<img src="' . esc_url($qr_code_url) . '" alt="PIX Payment QR Code" />';
+        function add_digiwoo_qrcode_gateway($methods) {
+            $methods[] = 'WC_PIX_QRCODE';
+            return $methods;
         }
     }
 
+    // Add JavaScript for QR Code generation on the Thank You page
+    add_action('woocommerce_thankyou', 'digiwoo_qrcode_js', 10);
 
-    add_filter( 'woocommerce_payment_gateways', 'add_pix_qrcode_gateway' );
-    
-    function add_pix_qrcode_gateway( $methods ) {
-        $methods[] = 'WC_PIX_QRCODE';
-        return $methods;
+    function digiwoo_qrcode_js($order_id) {
+        if (isset($_GET['pix_payload'])) {
+            $pix_payload = sanitize_text_field($_GET['pix_payload']);
+
+            echo '<div id="qrcode"></div>';
+
+            // Include qrcode.js library
+            echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>';
+            echo "<script>
+                var qrcode = new QRCode(document.getElementById('qrcode'), {
+                    text: '$pix_payload',
+                    width: 128,
+                    height: 128
+                });
+            </script>";
+        }
     }
 }
