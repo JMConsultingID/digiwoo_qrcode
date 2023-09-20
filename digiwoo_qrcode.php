@@ -123,9 +123,11 @@ function digiwoo_qrcode_init() {
 
         // Build request for QR code generation
         $api_endpoint = 'https://api.sqala.tech/core/v1/pix-qrcode-payments';
+        $options = get_option('woocommerce_pix_qrcode_settings');
+        $token = isset($options['token']) ? $options['token'] : '';
         $headers = array(
             'accept' => 'application/json',
-            'authorization' => 'Bearer ' . $this->get_option('token'),
+            'authorization' => 'Bearer ' . $token,
             'content-type' => 'application/json',
         );
 
