@@ -7,6 +7,7 @@
  * Text Domain: digiwoo-qrcode
  */
 
+require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/Encoding/EncodingInterface.php';
 require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/Encoding/Encoding.php';
 require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCodeInterface.php';
 require_once plugin_dir_path( __FILE__ ) . 'endroid-qrcode/QrCode.php';
