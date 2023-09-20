@@ -51,11 +51,6 @@ function digiwoo_qrcode_init() {
                     'default'     => __( 'PIX QRCode', 'digiwoo-qrcode' ),
                     'desc_tip'    => true,
                 ),
-                'description' => array(
-                    'title' => 'Description',
-                    'type' => 'textarea',
-                    'default' => 'Pay with PIX using QRCode.'
-                ),
                 'token' => array(
                     'title'       => __( 'Secret Token', 'digiwoo-qrcode' ),
                     'type'        => 'password', // Setting this as a password field will hide the actual value.
@@ -67,33 +62,90 @@ function digiwoo_qrcode_init() {
             );
         }
 
-        public function process_payment($order_id) {
-            $order = wc_get_order($order_id);
-            
-            // Mark as on-hold (we're awaiting the payment)
-            $order->update_status('on-hold', __('Awaiting PIX QR payment.', 'digiwoo-qrcode'));
+        public function process_payment( $order_id ) {
+            global $woocommerce;
+            $order = new WC_Order($order_id);
 
-            // Reduce stock levels
-            $order->reduce_order_stock();
-
-            // Remove cart
-            WC()->cart->empty_cart();
-
-            // Return thankyou redirect (this would be the standard thank you page)
-            return array(
-                'result'   => 'success',
-                'redirect' => $this->get_return_url($order)
+            $payload = array(
+                'payer' => array(
+                    'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+                    'taxId'  => '37515868066'
+                ),
+                'amount' => 1000
             );
+
+            $response = wp_remote_post( 'https://api.sqala.tech/core/v1/pix-qrcode-payments', array(
+                'method'    => 'POST',
+                'headers'   => array(
+                    'accept'        => 'application/json',
+                    'authorization' => 'Bearer ' . $this->get_option( 'token' ),
+                    'content-type'  => 'application/json'
+                ),
+                'body' => json_encode( $payload )
+            ) );
+
+            if ( is_wp_error( $response ) ) {
+                wc_add_notice( 'Connection error: ' . $response->get_error_message(), 'error' );
+                return;
+            }
+
+            $body = wp_remote_retrieve_body( $response );
+            $body = json_decode( $body, true );
+
+            if ( wp_remote_retrieve_response_code( $response ) != 200 ) {
+                if ( isset( $body['message'] ) ) {  // Assuming the error message is in the 'message' key
+                    wc_add_notice( 'API Error: ' . $body['message'], 'error' );
+                } else {
+                    wc_add_notice( 'Unexpected API Error.', 'error' );
+                }
+                return;
+            }
+
+            if ( isset( $body['payload'] ) ) {
+                // Generate QR Code
+                $qrCode = new \Endroid\QrCode\QrCode($body['payload']);
+                $qrCode->setSize(200); // Size of QR Code, adjust as needed
+
+                // Get PNG data
+                $writer = new PngWriter();
+                $pngData = $writer->write($qrCode)->getString();
+
+                // Convert PNG data to a data URI
+                $dataUri = 'data:image/png;base64,' . base64_encode($pngData);
+
+                // Save data URI to order meta
+                update_post_meta($order_id, '_pix_qrcode_data_uri', $dataUri);
+
+                // Display QR Code to customer using some frontend mechanism. This part needs more logic to show QR code to user.
+                // For now, we will just save the QR code URL to the order and redirect the user.
+
+                $order->update_status( 'on-hold', __( 'Awaiting PIX QRCode payment', 'digiwoo-qrcode' ) );
+                $order->reduce_order_stock();
+
+                $woocommerce->cart->empty_cart();
+
+                return array(
+                    'result'   => 'success',
+                    'redirect' => $this->get_return_url( $order )
+                );
+            } else {
+                wc_add_notice( 'There was an error processing your payment', 'error' );
+                return;
+            }
         }
-
-
     }
 
-    // Add this function to your digiwoo_qrcode.php
-    function digiwoo_enqueue_styles() {
-        wp_enqueue_style('digiwoo_qrcode_css', plugin_dir_url(__FILE__) . 'css/mains.css', array(), '1.2');
+    add_action('woocommerce_thankyou', 'display_qrcode_after_order', 10, 1);
+    function display_qrcode_after_order($order_id) {
+        $dataUri = get_post_meta($order_id, '_pix_qrcode_data_uri', true);
+
+        if ($dataUri) {
+            echo '<h2>PIX QRCode Payment</h2>';
+            echo '<p>Please scan the below QR code to complete your payment:</p>';
+            echo '<img src="' . esc_attr($dataUri) . '" alt="PIX Payment QR Code" />';
+        }
     }
-    add_action('wp_enqueue_scripts', 'digiwoo_enqueue_styles');
+
 
 
     add_filter( 'woocommerce_payment_gateways', 'add_pix_qrcode_gateway' );
@@ -102,94 +154,4 @@ function digiwoo_qrcode_init() {
         $methods[] = 'WC_PIX_QRCODE';
         return $methods;
     }
-
-    // AJAX Handling
-    add_action('wp_ajax_get_qr_code_for_order', 'digiwoo_get_qr_code_for_order');
-    add_action('wp_ajax_nopriv_get_qr_code_for_order', 'digiwoo_get_qr_code_for_order');
-
-    function digiwoo_get_qr_code_for_order() {
-        if (!isset($_POST['checkout_data'])) {
-            wp_send_json_error(array('message' => 'Invalid request.'));
-            return;
-        }
-
-        // Parse form data
-        parse_str($_POST['checkout_data'], $checkout_data);
-
-        // Get necessary information from $checkout_data
-        $payer_name = sanitize_text_field($checkout_data['billing_first_name'] . ' ' . $checkout_data['billing_last_name']);
-        $tax_id = sanitize_text_field($checkout_data['billing_tax_id']); // Assuming you have a tax_id field, change appropriately
-        $amount = floatval(WC()->cart->get_total('edit'));
-
-        // Build request for QR code generation
-        $api_endpoint = 'https://api.sqala.tech/core/v1/pix-qrcode-payments';
-        $options = get_option('woocommerce_pix_qrcode_settings');
-        $token = isset($options['token']) ? $options['token'] : '';
-        $headers = array(
-            'accept' => 'application/json',
-            'authorization' => 'Bearer ' . $token,
-            'content-type' => 'application/json',
-        );
-
-
-        $body = json_encode(array(
-            'payer' => array(
-                'name' => $payer_name,
-                'taxId' => $tax_id
-            ),
-            'amount' => $amount
-        ));
-
-        $response = wp_remote_post($api_endpoint, array(
-            'headers' => $headers,
-            'body' => $body
-        ));
-
-        if (is_wp_error($response)) {
-            wp_send_json_error(array('message' => 'Error generating QR code.'));
-            return;
-        }
-
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-
-        if (isset($body['payload'])) {
-            // Generate QR Code
-            $qrCode = new Endroid\QrCode\QrCode($body['payload']);
-            $qrCode->setSize(200); // Size of QR Code, adjust as needed
-
-            // Get PNG data
-            $writer = new Endroid\QrCode\Writer\PngWriter();
-            $pngData = $writer->write($qrCode)->getString();
-
-            // Convert PNG data to a data URI
-            $dataUri = 'data:image/png;base64,' . base64_encode($pngData);
-
-            wp_send_json_success(array('qr_data_uri' => $dataUri));
-        } else {
-            wp_send_json_error(array('message' => 'Failed to retrieve QR payload.'));
-        }
-    }
-
-
-
-    // Enqueue Script
-    add_action('woocommerce_before_checkout_form', 'digiwoo_enqueue_scripts');
-
-    function digiwoo_enqueue_scripts() {
-        global $wp;
-
-        if(is_checkout() && !empty($wp->query_vars['order-pay'])) {
-            $order_id = $wp->query_vars['order-pay'];
-            $dataUri = get_post_meta($order_id, '_pix_qrcode_data_uri', true);
-        } else {
-            $dataUri = '';
-        }
-
-        wp_enqueue_script('digiwoo_qrcode_js', plugin_dir_url(__FILE__) . 'js/digiwoo_qrcodess.js', array('jquery'), '1.3', true);
-        wp_localize_script('digiwoo_qrcode_js', 'digiwoo_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'qr_data_uri' => $dataUri
-        ));
-    }
-
 }
