@@ -77,7 +77,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
 
                 // Convert from WooCommerce default currency to target currency
-                $converted_amount = convert_currency($order->get_total(), get_woocommerce_currency(), $target_currency);
+                $converted_amount = convert_amount($order->get_total(), $default_currency, $selected_currency);
 
 
                 if ($converted_amount === false) {
