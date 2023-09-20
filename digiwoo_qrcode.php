@@ -91,7 +91,7 @@ function digiwoo_qrcode_init() {
 
     // Add this function to your digiwoo_qrcode.php
     function digiwoo_enqueue_styles() {
-        wp_enqueue_style('digiwoo_qrcode_css', plugin_dir_url(__FILE__) . 'css/main.css', array(), '1.0');
+        wp_enqueue_style('digiwoo_qrcode_css', plugin_dir_url(__FILE__) . 'css/mains.css', array(), '1.2');
     }
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_styles');
 
