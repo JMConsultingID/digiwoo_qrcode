@@ -64,7 +64,7 @@ function digiwoo_qrcode_init() {
 
         public function process_payment( $order_id ) {
             global $woocommerce;
-            $order = wc_get_order( $order_id );
+            $order = new WC_Order($order_id);
 
             $payload = array(
                 'payer' => array(
@@ -85,11 +85,21 @@ function digiwoo_qrcode_init() {
             ) );
 
             if ( is_wp_error( $response ) ) {
-                wc_add_notice( 'There was an error processing your payment', 'error' );
+                wc_add_notice( 'Connection error: ' . $response->get_error_message(), 'error' );
                 return;
             }
 
-            $body = json_decode( wp_remote_retrieve_body( $response ), true );
+            $body = wp_remote_retrieve_body( $response );
+            $body = json_decode( $body, true );
+
+            if ( wp_remote_retrieve_response_code( $response ) != 200 ) {
+                if ( isset( $body['message'] ) ) {  // Assuming the error message is in the 'message' key
+                    wc_add_notice( 'API Error: ' . $body['message'], 'error' );
+                } else {
+                    wc_add_notice( 'Unexpected API Error.', 'error' );
+                }
+                return;
+            }
 
             if ( isset( $body['payload'] ) ) {
                 // Generate QR Code
