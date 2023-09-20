@@ -167,9 +167,20 @@ function digiwoo_qrcode_init() {
     add_action('woocommerce_before_checkout_form', 'digiwoo_enqueue_scripts');
 
     function digiwoo_enqueue_scripts() {
+        global $wp;
+
+        if(is_checkout() && !empty($wp->query_vars['order-pay'])) {
+            $order_id = $wp->query_vars['order-pay'];
+            $dataUri = get_post_meta($order_id, '_pix_qrcode_data_uri', true);
+        } else {
+            $dataUri = '';
+        }
+
         wp_enqueue_script('digiwoo_qrcode_js', plugin_dir_url(__FILE__) . 'js/digiwoo_qrcode.js', array('jquery'), '1.0', true);
         wp_localize_script('digiwoo_qrcode_js', 'digiwoo_params', array(
-            'ajax_url' => admin_url('admin-ajax.php')
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'qr_data_uri' => $dataUri
         ));
     }
+
 }

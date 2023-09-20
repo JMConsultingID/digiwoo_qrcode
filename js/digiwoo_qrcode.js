@@ -2,28 +2,29 @@
     'use strict';
 
     jQuery(document).ready(function($) {
-        // Assuming your checkout button has an ID of place_order
-        $('#place_order').on('click', function(e) {
-            e.preventDefault();
+        if($('body').hasClass('woocommerce-checkout')) {
+            // Assuming you're only showing this popup on checkout page
 
-            // Show popup with QR Code
-            let dataUri = /* fetch your QR code data URI from the server */;
-            $('body').append('<div id="qrcode_popup"><img src="' + dataUri + '" alt="QR Code" /><button id="completed_payment">Completed Payment</button></div>');
+            let dataUri = digiwoo_params.qr_data_uri; // This gets the data URI we passed from PHP
 
-            // Add event for completed payment
-            $('#completed_payment').on('click', function() {
-                $.post(digiwoo_params.ajax_url, { action: 'check_qrcode_payment' }, function(response) {
-                    if(response.status === 'completed') {
-                        // Redirect to the default WooCommerce thank you page
-                        var order_id = response.order_id; // assuming you're sending order_id in the AJAX response
-                        var order_key = response.order_key; // assuming you're sending order_key in the AJAX response
-                        window.location.href = '/checkout/order-received/' + order_id + '/?key=' + order_key;
-                    } else {
-                        alert('Payment not completed. Please check again.');
-                    }
+            // Your logic for showing the QR code in a popup.
+            if (dataUri !== '') {
+                let popupContent = '<div id="qr-popup">' +
+                                    '<img src="'+ dataUri +'" alt="QR Code" />' +
+                                    '<button id="completed-payment">Completed Payment</button>' +
+                                   '</div>';
+                $('body').append(popupContent);
+
+                // Show the popup here (you might need additional CSS and logic to show/hide it, etc.)
+
+                // Add event listener for 'Completed Payment' button
+                $('#completed-payment').click(function() {
+                    // You can handle the event when the user clicks this button.
+                    // Maybe close the popup and redirect to a thank you page, or whatever you need to do.
                 });
-            });
-
-        });
+            }
+        }
     });
+
+
 })( jQuery );
