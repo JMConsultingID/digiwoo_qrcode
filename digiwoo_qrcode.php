@@ -105,11 +105,11 @@ function digiwoo_qrcode_init() {
                 $qrCode->setSize(200); // Size of QR Code, adjust as needed
 
                 // Save QR Code to temp file
-                $temp_file = tempnam(sys_get_temp_dir(), 'QR') . '.png';
-                $qrCode->writeFile($temp_file);
+                // Get the data URI to display inline
+                $dataUri = $qrCode->writeDataUri();
 
-                // Save temp file URL to order meta
-                update_post_meta($order_id, '_pix_qrcode_url', $temp_file);
+                // Save data URI to order meta
+                update_post_meta($order_id, '_pix_qrcode_data_uri', $dataUri);
 
                 // Display QR Code to customer using some frontend mechanism. This part needs more logic to show QR code to user.
                 // For now, we will just save the QR code URL to the order and redirect the user.
@@ -132,14 +132,15 @@ function digiwoo_qrcode_init() {
 
     add_action('woocommerce_thankyou', 'display_qrcode_after_order', 10, 1);
     function display_qrcode_after_order($order_id) {
-        $qr_code_url = get_post_meta($order_id, '_pix_qrcode_url', true);
+        $dataUri = get_post_meta($order_id, '_pix_qrcode_data_uri', true);
 
-        if ($qr_code_url) {
+        if ($dataUri) {
             echo '<h2>PIX QRCode Payment</h2>';
             echo '<p>Please scan the below QR code to complete your payment:</p>';
-            echo '<img src="' . esc_url($qr_code_url) . '" alt="PIX Payment QR Code" />';
+            echo '<img src="' . esc_attr($dataUri) . '" alt="PIX Payment QR Code" />';
         }
     }
+
 
 
     add_filter( 'woocommerce_payment_gateways', 'add_pix_qrcode_gateway' );
