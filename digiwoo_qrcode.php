@@ -65,14 +65,14 @@ function digiwoo_qrcode_init() {
         public function process_payment( $order_id ) {
             global $woocommerce;
             $order = new WC_Order($order_id);
-            $order_total = (int) $order->get_total();
 
+            $order_total_int = (int) ($order->get_total() * 100);
             $payload = array(
                 'payer' => array(
                     'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
                     'taxId'  => '37515868066'
                 ),
-                'amount' => $order_total
+                'amount' => $order_total_int
             );
 
             $response = wp_remote_post( 'https://api.sqala.tech/core/v1/pix-qrcode-payments', array(
