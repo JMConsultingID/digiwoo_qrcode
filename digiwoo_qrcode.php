@@ -71,7 +71,7 @@ function digiwoo_qrcode_init() {
                     'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
                     'taxId'  => '37515868066'
                 ),
-                'amount' => 1000
+                'amount' => intval($order->get_total() * 100)
             );
 
             $response = wp_remote_post( 'https://api.sqala.tech/core/v1/pix-qrcode-payments', array(
