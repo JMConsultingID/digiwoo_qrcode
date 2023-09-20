@@ -72,7 +72,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $billing_country = $order->get_billing_country();
                 $currency_map = get_country_currency_map();
 
-                // If the selected country has a mapping in our array, get its currency, else default to WooCommerce's currency
+                $default_currency = get_woocommerce_currency();
                 $target_currency = isset($currency_map[$billing_country]) ? $currency_map[$billing_country] : get_woocommerce_currency();
 
 
