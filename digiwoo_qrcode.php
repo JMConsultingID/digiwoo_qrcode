@@ -8,6 +8,8 @@
  */
 
 require __DIR__ . '/vendor/autoload.php';
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
@@ -104,9 +106,12 @@ function digiwoo_qrcode_init() {
                 $qrCode = new \Endroid\QrCode\QrCode($body['payload']);
                 $qrCode->setSize(200); // Size of QR Code, adjust as needed
 
-                // Save QR Code to temp file
-                // Get the data URI to display inline
-                $dataUri = $qrCode->writeDataUri();
+                // Get PNG data
+                $writer = new PngWriter();
+                $pngData = $writer->write($qrCode)->getString();
+
+                // Convert PNG data to a data URI
+                $dataUri = 'data:image/png;base64,' . base64_encode($pngData);
 
                 // Save data URI to order meta
                 update_post_meta($order_id, '_pix_qrcode_data_uri', $dataUri);
