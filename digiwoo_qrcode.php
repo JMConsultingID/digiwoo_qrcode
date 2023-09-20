@@ -69,7 +69,7 @@ function digiwoo_qrcode_init() {
             $payload = array(
                 'payer' => array(
                     'name'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-                    'taxId'  => $order->get_billing_company()
+                    'taxId'  => '37515868066'
                 ),
                 'amount' => $order->get_total()
             );
