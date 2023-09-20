@@ -1,6 +1,5 @@
 (function( $ ) {
     'use strict';
-
     jQuery(document).ready(function($) {
         // Listen to the place order button click
         $('form.checkout').on('checkout_place_order', function(e) {
@@ -41,6 +40,4 @@
             });
         }
     });
-
-
 })( jQuery );
