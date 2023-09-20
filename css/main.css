@@ -1,4 +1,4 @@
-#qrcode_popup {
+.qr-popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,7 +11,7 @@
     flex-direction: column;
 }
 
-#qrcode_popup img {
+.qr-popup img {
     max-width: 80%;
     margin-bottom: 20px;
 }

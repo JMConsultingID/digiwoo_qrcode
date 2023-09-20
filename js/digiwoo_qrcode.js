@@ -2,27 +2,43 @@
     'use strict';
 
     jQuery(document).ready(function($) {
-        if($('body').hasClass('woocommerce-checkout')) {
-            // Assuming you're only showing this popup on checkout page
+        // Listen to the place order button click
+        $('form.checkout').on('checkout_place_order', function(e) {
+            if ($('#payment_method_pix_qrcode').is(':checked')) {
+                // Prevent form submission
+                e.preventDefault();
 
-            let dataUri = digiwoo_params.qr_data_uri; // This gets the data URI we passed from PHP
-
-            // Your logic for showing the QR code in a popup.
-            if (dataUri !== '') {
-                let popupContent = '<div id="qr-popup">' +
-                                    '<img src="'+ dataUri +'" alt="QR Code" />' +
-                                    '<button id="completed-payment">Completed Payment</button>' +
-                                   '</div>';
-                $('body').append(popupContent);
-
-                // Show the popup here (you might need additional CSS and logic to show/hide it, etc.)
-
-                // Add event listener for 'Completed Payment' button
-                $('#completed-payment').click(function() {
-                    // You can handle the event when the user clicks this button.
-                    // Maybe close the popup and redirect to a thank you page, or whatever you need to do.
+                // Trigger AJAX to get QR code
+                $.ajax({
+                    url: wc_checkout_params.ajax_url,
+                    type: 'POST',
+                    data: {
+                        'action': 'get_qr_code_for_order',
+                        'checkout_data': $('form.checkout').serialize()
+                    },
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            // Show popup with QR code
+                            showQrPopup(response.data.qr_data_uri);
+                        }
+                    }
                 });
             }
+        });
+        
+        function showQrPopup(dataUri) {
+            var popupContent = '<div class="qr-popup">' +
+                '<h2>PIX QRCode Payment</h2>' +
+                '<img src="' + dataUri + '" alt="PIX Payment QR Code" />' +
+                '<button class="return-to-payment">Return to Payment</button>' +
+                '</div>';
+
+            $('body').append(popupContent);
+            
+            $('.qr-popup .return-to-payment').click(function() {
+                // Handle return to payment
+                $('.qr-popup').remove();
+            });
         }
     });
 
