@@ -73,7 +73,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $currency_map = get_country_currency_map();
 
                 // If the selected country has a mapping in our array, get its currency, else default to WooCommerce's currency
-                $target_currency = isset($currency_map[$billing_country]) ? $currency_map[$billing_country] : 'IDR';
+                $target_currency = isset($currency_map[$billing_country]) ? $currency_map[$billing_country] : get_woocommerce_currency();
 
 
                 // Convert from WooCommerce default currency to target currency
@@ -161,33 +161,39 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
 
     function convert_amount($amount, $from_currency, $to_currency) {
-    // API Endpoint and Key
-    $endpoint = "https://api.freecurrencyapi.com/v1/latest";
-    $apikey = "fca_live_OsuURErJcRonAjGQKQGdxDvYHBYvKNkRgTx0VcLD";
-    
-    // Get conversion rates
-        $response = wp_remote_get("{$endpoint}?apikey={$apikey}&currencies={$from_currency},{$to_currency}");
-        
-        if (is_wp_error($response)) {
+        $api_url = "https://openexchangerates.org/api/latest.json";
+        $app_id = "8d6942c3613f4282aaf251198c8ebd05"; // Your API key
+
+        // Fetch rates for both currencies, as the base currency in the API is USD
+        $response_from = wp_remote_get("{$api_url}?app_id={$app_id}&symbols={$from_currency}");
+        $response_to = wp_remote_get("{$api_url}?app_id={$app_id}&symbols={$to_currency}");
+
+        // Check for errors
+        if (is_wp_error($response_from) || is_wp_error($response_to)) {
             // Handle the error
             wc_add_notice(__('Error fetching currency conversion rates. Please try again later.', 'your-text-domain'), 'error');
             return; // Return original amount if there's an error
         }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
 
-        if (!isset($data['data'][$from_currency]) || !isset($data['data'][$to_currency])) {
-            // Handle this error if the expected currency data is missing
+        $body_from = wp_remote_retrieve_body($response_from);
+        $body_to = wp_remote_retrieve_body($response_to);
+
+        $data_from = json_decode($body_from, true);
+        $data_to = json_decode($body_to, true);
+
+        if (!isset($data_from['rates'][$from_currency]) || !isset($data_to['rates'][$to_currency])) {
             wc_add_notice(__('Unexpected currency data received. Please try again later.', 'your-text-domain'), 'error');
-            return; // Return original amount if the necessary data isn't there
+            return; // Return original amount if there's an error
         }
 
-        // Calculate the converted amount
-        $conversion_rate = $data['data'][$to_currency] / $data['data'][$from_currency];
-        return $amount * $conversion_rate;
-    }
+        // Calculate the amount in USD (as the base currency of the API is USD)
+        $amount_in_usd = $amount / $data_from['rates'][$from_currency];
 
+        // Convert the USD amount to the target currency
+        $converted_amount = $amount_in_usd * $data_to['rates'][$to_currency];
+
+        return $converted_amount;
+    }
 
 
 
