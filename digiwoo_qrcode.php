@@ -183,7 +183,7 @@ function digiwoo_qrcode_init() {
             $dataUri = '';
         }
 
-        wp_enqueue_script('digiwoo_qrcode_js', plugin_dir_url(__FILE__) . 'js/digiwoo_qrcode.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('digiwoo_qrcode_js', plugin_dir_url(__FILE__) . 'js/digiwoo_qrcodes.js', array('jquery'), '1.2', true);
         wp_localize_script('digiwoo_qrcode_js', 'digiwoo_params', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'qr_data_uri' => $dataUri
