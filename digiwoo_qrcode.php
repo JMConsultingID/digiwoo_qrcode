@@ -125,9 +125,10 @@ function digiwoo_qrcode_init() {
         $api_endpoint = 'https://api.sqala.tech/core/v1/pix-qrcode-payments';
         $headers = array(
             'accept' => 'application/json',
-            'authorization' => 'Bearer YOUR_TOKEN_HERE', // Make sure to secure this and not expose directly
+            'authorization' => 'Bearer ' . $this->get_option('token'),
             'content-type' => 'application/json',
         );
+
 
         $body = json_encode(array(
             'payer' => array(
