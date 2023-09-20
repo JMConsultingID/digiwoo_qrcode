@@ -161,16 +161,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
 
     function convert_amount($amount, $from_currency, $to_currency) {
-        // API Endpoint and Key
-        $endpoint = "https://api.freecurrencyapi.com/v1/latest";
-        $apikey = "fca_live_OsuURErJcRonAjGQKQGdxDvYHBYvKNkRgTx0VcLD";
-        
-        // Get conversion rates
+    // API Endpoint and Key
+    $endpoint = "https://api.freecurrencyapi.com/v1/latest";
+    $apikey = "fca_live_OsuURErJcRonAjGQKQGdxDvYHBYvKNkRgTx0VcLD";
+    
+    // Get conversion rates
         $response = wp_remote_get("{$endpoint}?apikey={$apikey}&currencies={$from_currency},{$to_currency}");
         
         if (is_wp_error($response)) {
-            // Handle the error accordingly
-            return $amount; // Return original amount if there's an error
+            // Handle the error
+            wc_add_notice(__('Error fetching currency conversion rates. Please try again later.', 'your-text-domain'), 'error');
+            return; // Return original amount if there's an error
         }
         
         $body = wp_remote_retrieve_body($response);
@@ -178,13 +179,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
         if (!isset($data['data'][$from_currency]) || !isset($data['data'][$to_currency])) {
             // Handle this error if the expected currency data is missing
-            return $amount; // Return original amount if the necessary data isn't there
+            wc_add_notice(__('Unexpected currency data received. Please try again later.', 'your-text-domain'), 'error');
+            return; // Return original amount if the necessary data isn't there
         }
 
         // Calculate the converted amount
         $conversion_rate = $data['data'][$to_currency] / $data['data'][$from_currency];
         return $amount * $conversion_rate;
     }
+
 
 
 
