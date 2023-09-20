@@ -2,7 +2,7 @@
     'use strict';
     jQuery(document).ready(function($) {
         // Listen to the place order button click
-        $('form.checkout').on('checkout_place_order', function(e) {
+         $('#place_order').on('click', function(e) {
             if ($('#payment_method_pix_qrcode').is(':checked')) {
                 // Prevent form submission
                 e.preventDefault();
