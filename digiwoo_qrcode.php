@@ -210,11 +210,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     var centerX = canvas.width / 2;
                                     var centerY = canvas.height / 2;
         
-                                    ctx.font = "20px Arial";
+                                    // Increase the font size
+                                    ctx.font = "25px Arial";
                                     ctx.textAlign = "center";
                                     ctx.textBaseline = "middle";
                                     ctx.fillStyle = "white";
-                                    ctx.fillRect(centerX - 40, centerY - 12, 80, 24);
+                                    // Adjust the size of the rectangle based on the new font size
+                                    var textWidth = ctx.measureText(response.currency + " " + response.amount).width;
+                                    ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);  // Adjusted dimensions for the rectangle
+
                                     ctx.fillStyle = "black";
                                     ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
                                 } else {
