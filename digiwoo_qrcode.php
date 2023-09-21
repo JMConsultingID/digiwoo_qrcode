@@ -175,6 +175,19 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function digiwoo_qrcode_js() {
         if (is_checkout()) {
             ?>
+            <style>
+                #loading-message {
+                    display: none;
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 1000;
+                    background-color: rgba(255, 255, 255, 0.8);
+                    padding: 20px;
+                    border-radius: 10px;
+                }
+            </style>
             <script>
                 jQuery(document).ready(function($) {
                     console.log('Script loaded!');  // Debugging aid
@@ -182,6 +195,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $('body').on('click', '#place_order', function(e) {
                         if ($('#payment_method_pix_qrcode').is(':checked')) {
                         e.preventDefault();
+
+                         // Show the loading message
+                        $('#loading-message').show();
                         console.log('Button clicked!');  // Debugging aid
 
                         $.ajax({
@@ -191,6 +207,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             dataType: 'json',
                             success: function(response) {
                                 console.log(response);  // Debugging aid
+                                 // Hide the loading message
+                                $('#loading-message').hide();
 
                                 if (response.result === 'success') {
                                     let redirectUrl = response.redirect ? response.redirect : 'fallback_url_here';  // Replace 'fallback_url_here' with a default URL if needed
