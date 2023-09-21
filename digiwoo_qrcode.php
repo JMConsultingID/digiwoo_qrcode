@@ -209,7 +209,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
 
                                         setTimeout(() => {
-                                            canvas.style.display = "block";
+                                            canvas.style.display = "inline-block";
                                         }, 100);
 
 
