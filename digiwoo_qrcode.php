@@ -247,6 +247,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 }
                             },
                             error: function(jqXHR, textStatus, errorThrown) {
+                                // Hide the loading message
+                                $('#loading-message').hide();
                                 console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
                             }
                         });
