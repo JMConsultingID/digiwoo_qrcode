@@ -168,7 +168,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 jQuery(document).ready(function($) {
                     console.log('Script loaded!');  // Debugging aid
 
-                    $('#place_order').on('click', function(e) {
+                    $('body').on('click', '#place_order', function(e) {
                         e.preventDefault();
                         console.log('Button clicked!');  // Debugging aid
 
