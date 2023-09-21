@@ -208,14 +208,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         ctx.fillStyle = "black";
                                         ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
 
-                                        let containerDiv = document.createElement('div');
-                                        containerDiv.appendChild(canvas);
+                                        canvas.style.display = "inline-block";
 
                                         Swal.fire({
                                             title: 'Your QR Code',
-                                            html: containerDiv.outerHTML, // This part changes
+                                            html: canvas,
                                             showCloseButton: true,
-                                            confirmButtonText: 'Process the Payment ',
+                                            confirmButtonText: 'Proceed to Payment ',
                                             preConfirm: () => {
                                                 location.href = response.redirect; 
                                             }
