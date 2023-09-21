@@ -194,7 +194,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         });
 
                                         var canvas = qrcode._el.querySelector('canvas');
-                                        canvas.style.display = 'block';  // Make sure the canvas is visible
                                         var ctx = canvas.getContext('2d');
 
                                         var centerX = canvas.width / 2;
@@ -209,11 +208,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         ctx.fillStyle = "black";
                                         ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
 
+                                        let containerDiv = document.createElement('div');
+                                        containerDiv.appendChild(canvas);
+
                                         Swal.fire({
                                             title: 'Your QR Code',
-                                            html: $('<div>').append(canvas.cloneNode(true).setAttribute("style", "display: block")).html(),
+                                            html: containerDiv.outerHTML, // This part changes
                                             showCloseButton: true,
-                                            confirmButtonText: 'Continue Payment',
+                                            confirmButtonText: 'Process the Payment ',
                                             preConfirm: () => {
                                                 location.href = response.redirect; 
                                             }
