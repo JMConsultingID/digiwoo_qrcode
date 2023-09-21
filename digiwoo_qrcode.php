@@ -115,13 +115,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         // Remove cart contents
                         WC()->cart->empty_cart();
 
-                         // Set a session variable with the payload for later use
-                        WC()->session->set('pix_payload', $body['payload']);
-
                         // Redirect to thank you page with the payload for QR code generation
                         return array(
-                            'result'   => 'success',
-                            'redirect' => $order->get_checkout_order_received_url(),
+                            'result' => 'success',
+                            'pix_payload' => $body['payload']
                         );
                     }
                 }
@@ -142,41 +139,47 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 
-    add_action('wp_footer', 'digiwoo_qrcode_popup');
 
-    function digiwoo_qrcode_popup() {
-        if (WC()->session && WC()->session->get('pix_payload')) {
-            $pix_payload = WC()->session->get('pix_payload');
-            
-            echo '<div id="qrcodePopup" style="display:none;">';
-            echo '<div id="qrcode"></div>';
-            echo '<button id="continueToThankYouPage">Continue</button>';
-            echo '</div>';
-            
-            // Include qrcode.js library
-            echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>';
-            echo "
+    function digiwoo_qrcode_js() {
+        if (is_checkout()) {
+            ?>
             <script>
-                var qrcode = new QRCode(document.getElementById('qrcode'), {
-                    text: '$pix_payload',
-                    width: 128,
-                    height: 128
-                });
+                jQuery(document).ready(function($) {
+                    $('#place_order').on('click', function(e) {
+                        e.preventDefault();
 
-                // Show the popup
-                document.getElementById('qrcodePopup').style.display = 'block';
+                        $.ajax({
+                            type: 'POST',
+                            url: wc_checkout_params.checkout_url,
+                            data: $('form.checkout').serialize(),
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.result === 'success') {
+                                    let qrcodePopup = '<div id="qrcode-popup">' +
+                                        '<div id="qrcode"></div>' +
+                                        '<a href="'+ response.redirect +'" class="button">Proceed to Thank You page</a>' +
+                                        '</div>';
+                                    
+                                    $('body').append(qrcodePopup);
 
-                document.getElementById('continueToThankYouPage').addEventListener('click', function() {
-                    // Hide the popup and continue to thank you page
-                    document.getElementById('qrcodePopup').style.display = 'none';
-                    window.location = '" . wc_get_endpoint_url('order-received') . "';
+                                    let qrcode = new QRCode(document.getElementById('qrcode'), {
+                                        text: response.pix_payload,
+                                        width: 128,
+                                        height: 128
+                                    });
+                                } else {
+                                    window.alert('Error generating order.');
+                                }
+                            }
+                        });
+                    });
                 });
-            </script>";
-            
-            // Unset the session variable
-            WC()->session->__unset('pix_payload');
+            </script>
+            <?php
         }
     }
+
+    add_action('wp_footer', 'digiwoo_qrcode_js');
 
     function convert_amount($amount, $from_currency, $to_currency) {
         $api_url = "https://openexchangerates.org/api/latest.json";
