@@ -115,10 +115,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         // Remove cart contents
                         WC()->cart->empty_cart();
 
+                         // Set a session variable with the payload for later use
+                        WC()->session->set('pix_payload', $body['payload']);
+
                         // Redirect to thank you page with the payload for QR code generation
                         return array(
                             'result'   => 'success',
-                            'redirect' => $this->get_return_url($order) . '&pix_payload=' . urlencode($body['payload']),
+                            'redirect' => $order->get_checkout_order_received_url(),
                         );
                     }
                 }
@@ -139,24 +142,39 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 
-    // Add JavaScript for QR Code generation on the Thank You page
-    add_action('woocommerce_thankyou', 'digiwoo_qrcode_js', 10);
+    add_action('wp_footer', 'digiwoo_qrcode_popup');
 
-    function digiwoo_qrcode_js($order_id) {
-        if (isset($_GET['pix_payload'])) {
-            $pix_payload = sanitize_text_field($_GET['pix_payload']);
-
+    function digiwoo_qrcode_popup() {
+        if (WC()->session && WC()->session->get('pix_payload')) {
+            $pix_payload = WC()->session->get('pix_payload');
+            
+            echo '<div id="qrcodePopup" style="display:none;">';
             echo '<div id="qrcode"></div>';
-
+            echo '<button id="continueToThankYouPage">Continue</button>';
+            echo '</div>';
+            
             // Include qrcode.js library
             echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>';
-            echo "<script>
+            echo "
+            <script>
                 var qrcode = new QRCode(document.getElementById('qrcode'), {
                     text: '$pix_payload',
                     width: 128,
                     height: 128
                 });
+
+                // Show the popup
+                document.getElementById('qrcodePopup').style.display = 'block';
+
+                document.getElementById('continueToThankYouPage').addEventListener('click', function() {
+                    // Hide the popup and continue to thank you page
+                    document.getElementById('qrcodePopup').style.display = 'none';
+                    window.location = '" . wc_get_endpoint_url('order-received') . "';
+                });
             </script>";
+            
+            // Unset the session variable
+            WC()->session->__unset('pix_payload');
         }
     }
 
