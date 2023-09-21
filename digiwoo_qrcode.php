@@ -208,7 +208,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         ctx.fillStyle = "black";
                                         ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
 
-                                        canvas.style.display = "block !important";
+                                        setTimeout(() => {
+                                            canvas.style.display = "block";
+                                        }, 100);
+
 
                                         Swal.fire({
                                             title: 'Your QR Code',
