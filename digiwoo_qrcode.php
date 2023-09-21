@@ -139,14 +139,38 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 
+    function digiwoo_qrcode_styles() {
+        if (is_checkout()) {
+            ?>
+            <style>
+                #qrcode-popup {
+                    position: fixed;
+                    top: 10%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+                    z-index: 9999;
+                }
+            </style>
+            <?php
+        }
+    }
+    add_action('wp_head', 'digiwoo_qrcode_styles');
+
+
 
     function digiwoo_qrcode_js() {
         if (is_checkout()) {
             ?>
             <script>
                 jQuery(document).ready(function($) {
+                    console.log('Script loaded!');  // Debugging aid
+
                     $('#place_order').on('click', function(e) {
                         e.preventDefault();
+                        console.log('Button clicked!');  // Debugging aid
 
                         $.ajax({
                             type: 'POST',
@@ -154,6 +178,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             data: $('form.checkout').serialize(),
                             dataType: 'json',
                             success: function(response) {
+                                console.log(response);  // Debugging aid
+
                                 if (response.result === 'success') {
                                     let qrcodePopup = '<div id="qrcode-popup">' +
                                         '<div id="qrcode"></div>' +
@@ -170,6 +196,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 } else {
                                     window.alert('Error generating order.');
                                 }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
                             }
                         });
                     });
@@ -178,6 +207,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             <?php
         }
     }
+
 
     add_action('wp_footer', 'digiwoo_qrcode_js');
 
