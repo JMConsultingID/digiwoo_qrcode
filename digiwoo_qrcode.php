@@ -175,6 +175,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     console.log('Script loaded!');  // Debugging aid
 
                     $('body').on('click', '#place_order', function(e) {
+                        if ($('#payment_method_pix_qrcode').is(':checked')) {
                         e.preventDefault();
                         console.log('Button clicked!');  // Debugging aid
 
@@ -196,9 +197,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                                     let qrcode = new QRCode(document.getElementById('qrcode'), {
                                         text: response.pix_payload,
-                                        width: 128,
-                                        height: 128
+                                        width: 300,
+                                        height: 300
                                     });
+                                    var canvas = document.getElementById('qrcode').querySelector('canvas');
+                                    var ctx = canvas.getContext('2d');
+
+                                    var centerX = canvas.width / 2;
+                                    var centerY = canvas.height / 2;
+        
+                                    ctx.font = "20px Arial";
+                                    ctx.textAlign = "center";
+                                    ctx.textBaseline = "middle";
+                                    ctx.fillStyle = "white";
+                                    ctx.fillRect(centerX - 40, centerY - 12, 80, 24);
+                                    ctx.fillStyle = "black";
+                                    ctx.fillText("R$ " + response.amount, centerX, centerY);
                                 } else {
                                     window.alert('Error generating order.');
                                 }
@@ -207,6 +221,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
                             }
                         });
+                    }
                     });
                 });
             </script>
