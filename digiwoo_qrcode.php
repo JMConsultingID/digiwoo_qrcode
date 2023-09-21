@@ -3,7 +3,7 @@
  * Plugin Name: DigiWoo QRCode for WooCommerce
  * Description: Adds a PIX QRCode payment method to WooCommerce.
  * Version: 1.0
- * Author: Your Name
+ * Author: Ardika JM-Consulting
  */
 
 if (!defined('ABSPATH')) {
