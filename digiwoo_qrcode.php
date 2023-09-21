@@ -122,7 +122,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'result' => 'success',
                             'pix_payload' => $body['payload'],
                             'amount' => $formatted_amount,      // Adding the formatted amount
-                            'currency' => $target_currency      // Adding the currency
+                            'currency' => $target_currency,
+                            'redirect' => $this->get_return_url($order)
                         );
                     }
                 }
@@ -192,9 +193,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 console.log(response);  // Debugging aid
 
                                 if (response.result === 'success') {
+                                    let redirectUrl = response.redirect ? response.redirect : 'fallback_url_here';  // Replace 'fallback_url_here' with a default URL if needed
+    
                                     let qrcodePopup = '<div id="qrcode-popup">' +
                                         '<div id="qrcode"></div>' +
-                                        '<a href="'+ response.redirect +'" class="button">Proceed to Thank You page</a>' +
+                                        '<a href="'+ redirectUrl +'" class="button">Proceed to Thank You page</a>' +
                                         '</div>';
                                     
                                     $('body').append(qrcodePopup);
