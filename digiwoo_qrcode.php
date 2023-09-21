@@ -79,6 +79,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 // Convert from WooCommerce default currency to target currency
                 $converted_amount = convert_amount($order->get_total(), $default_currency, $target_currency);
 
+                $formatted_amount = number_format(intval($converted_amount * 100) / 100, 2); // This formats the number to two decimal places like money
+
 
                 if ($converted_amount === false) {
                     wc_add_notice(__('Error in currency conversion. Please try again.', 'woocommerce'), 'error');
@@ -118,7 +120,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         // Redirect to thank you page with the payload for QR code generation
                         return array(
                             'result' => 'success',
-                            'pix_payload' => $body['payload']
+                            'pix_payload' => $body['payload'],
+                            'amount' => $formatted_amount,      // Adding the formatted amount
+                            'currency' => $target_currency      // Adding the currency
                         );
                     }
                 }
@@ -212,7 +216,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     ctx.fillStyle = "white";
                                     ctx.fillRect(centerX - 40, centerY - 12, 80, 24);
                                     ctx.fillStyle = "black";
-                                    ctx.fillText("R$ " + response.amount, centerX, centerY);
+                                    ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
                                 } else {
                                     window.alert('Error generating order.');
                                 }
