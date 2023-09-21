@@ -216,7 +216,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         Swal.fire({
                                             title: 'Your QR Code',
                                             html: canvas,
-                                            showCloseButton: false,
+                                            showCloseButton: true,
                                             allowOutsideClick: false,
                                             confirmButtonText: 'Proceed to Payment ',
                                             preConfirm: () => {
