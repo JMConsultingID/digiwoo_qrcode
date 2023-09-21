@@ -144,41 +144,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 
-    function enqueue_qrcode_js() {
-        wp_enqueue_script('qrcode', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); // ganti dengan path yang sesuai
-    }
-    add_action('wp_enqueue_scripts', 'enqueue_qrcode_js');
 
     function digiwoo_enqueue_scripts() {
         // Enqueue SweetAlert2
         wp_enqueue_script('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js');
         wp_enqueue_style('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
+        wp_enqueue_script('qrcode', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); // ganti dengan path yang sesuai
     }
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
-
-
-
-    function digiwoo_qrcode_styles() {
-        if (is_checkout()) {
-            ?>
-            <style>
-                #qrcode-popup {
-                    position: fixed;
-                    top: 10%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: #fff;
-                    padding: 20px;
-                    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
-                    z-index: 9999;
-                }
-            </style>
-            <?php
-        }
-    }
-    add_action('wp_head', 'digiwoo_qrcode_styles');
-
-
 
     function digiwoo_qrcode_js() {
         if (is_checkout()) {
@@ -221,6 +194,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         });
 
                                         var canvas = qrcode._el.querySelector('canvas');
+                                        canvas.style.display = 'block';  // Make sure the canvas is visible
                                         var ctx = canvas.getContext('2d');
 
                                         var centerX = canvas.width / 2;
