@@ -149,6 +149,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_action('wp_enqueue_scripts', 'enqueue_qrcode_js');
 
+    function digiwoo_enqueue_scripts() {
+        // Enqueue SweetAlert2
+        wp_enqueue_script('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js');
+        wp_enqueue_style('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
+    }
+    add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
+
+
 
     function digiwoo_qrcode_styles() {
         if (is_checkout()) {
@@ -175,90 +183,84 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function digiwoo_qrcode_js() {
         if (is_checkout()) {
             ?>
-            <style>
-                #loading-message {
-                    display: none;
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 1000;
-                    background-color: rgba(255, 255, 255, 0.8);
-                    padding: 20px;
-                    border-radius: 10px;
-                }
-            </style>
             <script>
                 jQuery(document).ready(function($) {
                     console.log('Script loaded!');  // Debugging aid
 
                     $('body').on('click', '#place_order', function(e) {
                         if ($('#payment_method_pix_qrcode').is(':checked')) {
-                        e.preventDefault();
+                            e.preventDefault();
 
-                         // Show the loading message
-                        $('#loading-message').show();
-                        console.log('Button clicked!');  // Debugging aid
-
-                        $.ajax({
-                            type: 'POST',
-                            url: wc_checkout_params.checkout_url,
-                            data: $('form.checkout').serialize(),
-                            dataType: 'json',
-                            success: function(response) {
-                                console.log(response);  // Debugging aid
-                                 // Hide the loading message
-                                $('#loading-message').hide();
-
-                                if (response.result === 'success') {
-                                    let redirectUrl = response.redirect ? response.redirect : 'fallback_url_here';  // Replace 'fallback_url_here' with a default URL if needed
-    
-                                    let qrcodePopup = '<div id="qrcode-popup">' +
-                                        '<div id="qrcode"></div>' +
-                                        '<a href="'+ redirectUrl +'" class="button">Proceed to Thank You page</a>' +
-                                        '</div>';
-                                    
-                                    $('body').append(qrcodePopup);
-
-                                    let qrcode = new QRCode(document.getElementById('qrcode'), {
-                                        text: response.pix_payload,
-                                        width: 300,
-                                        height: 300
-                                    });
-                                    var canvas = document.getElementById('qrcode').querySelector('canvas');
-                                    var ctx = canvas.getContext('2d');
-
-                                    var centerX = canvas.width / 2;
-                                    var centerY = canvas.height / 2;
-        
-                                    // Increase the font size
-                                    ctx.font = "25px Arial";
-                                    ctx.textAlign = "center";
-                                    ctx.textBaseline = "middle";
-                                    ctx.fillStyle = "white";
-                                    // Adjust the size of the rectangle based on the new font size
-                                    var textWidth = ctx.measureText(response.currency + " " + response.amount).width;
-                                    ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);  // Adjusted dimensions for the rectangle
-
-                                    ctx.fillStyle = "black";
-                                    ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
-                                } else {
-                                    window.alert('Error generating order.');
+                            Swal.fire({
+                                title: 'Generating QR Code...',
+                                text: 'Please wait...',
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                onOpen: () => {
+                                    Swal.showLoading();
                                 }
-                            },
-                            error: function(jqXHR, textStatus, errorThrown) {
-                                // Hide the loading message
-                                $('#loading-message').hide();
-                                console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
-                            }
-                        });
-                    }
+                            });
+
+                            console.log('Button clicked!');  // Debugging aid
+
+                            $.ajax({
+                                type: 'POST',
+                                url: wc_checkout_params.checkout_url,
+                                data: $('form.checkout').serialize(),
+                                dataType: 'json',
+                                success: function(response) {
+                                    console.log(response);  // Debugging aid
+
+                                    if (response.result === 'success') {
+                                        let qrcode = new QRCode(document.createElement('div'), {
+                                            text: response.pix_payload,
+                                            width: 300,
+                                            height: 300
+                                        });
+
+                                        var canvas = qrcode._el.querySelector('canvas');
+                                        var ctx = canvas.getContext('2d');
+
+                                        var centerX = canvas.width / 2;
+                                        var centerY = canvas.height / 2;
+                                        ctx.font = "25px Arial";
+                                        ctx.textAlign = "center";
+                                        ctx.textBaseline = "middle";
+                                        ctx.fillStyle = "white";
+
+                                        var textWidth = ctx.measureText(response.currency + " " + response.amount).width;
+                                        ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);  
+                                        ctx.fillStyle = "black";
+                                        ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
+
+                                        Swal.fire({
+                                            title: 'Your QR Code',
+                                            html: canvas,
+                                            showCloseButton: true,
+                                            confirmButtonText: 'Proceed to Thank You page',
+                                            preConfirm: () => {
+                                                location.href = response.redirect; 
+                                            }
+                                        });
+                                    } else {
+                                        Swal.fire('Error', 'Error generating order.', 'error');
+                                    }
+                                },
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    Swal.fire('Error', 'AJAX error: ' + textStatus, 'error'); 
+                                    console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
+                                }
+                            });
+                        }
                     });
                 });
             </script>
             <?php
         }
     }
+
 
 
     add_action('wp_footer', 'digiwoo_qrcode_js');
