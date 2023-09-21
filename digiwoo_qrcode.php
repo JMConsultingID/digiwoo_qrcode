@@ -139,6 +139,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 
+    function enqueue_qrcode_js() {
+        wp_enqueue_script('qrcode', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); // ganti dengan path yang sesuai
+    }
+    add_action('wp_enqueue_scripts', 'enqueue_qrcode_js');
+
+
     function digiwoo_qrcode_styles() {
         if (is_checkout()) {
             ?>
