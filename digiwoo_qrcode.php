@@ -211,9 +211,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                                         Swal.fire({
                                             title: 'Your QR Code',
-                                            html: canvas,
+                                            html: $('<div>').append(canvas.cloneNode(true).setAttribute("style", "display: block")).html(),
                                             showCloseButton: true,
-                                            confirmButtonText: 'Proceed to Thank You page',
+                                            confirmButtonText: 'Continue Payment',
                                             preConfirm: () => {
                                                 location.href = response.redirect; 
                                             }
