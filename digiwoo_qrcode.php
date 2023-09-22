@@ -73,13 +73,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $currency_map = get_country_currency_map();
 
                 $default_currency = get_woocommerce_currency();
-                $target_currency = isset($currency_map[$billing_country]) ? $currency_map[$billing_country] : get_woocommerce_currency();
+                $target_currency = 'BRL';
 
 
                 // Convert from WooCommerce default currency to target currency
                 $converted_amount = convert_amount($order->get_total(), $default_currency, $target_currency);
 
-                $formatted_amount = number_format(intval($converted_amount * 100) / 100, 0); // This formats the number to two decimal places like money
+                $formatted_amount = number_format(intval($converted_amount * 100), 0); // This formats the number to two decimal places like money
 
 
                 if ($converted_amount === false) {
