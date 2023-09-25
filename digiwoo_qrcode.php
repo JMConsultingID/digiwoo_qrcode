@@ -114,6 +114,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                         // Add order note with the payment payload
                         $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
+                        $order->add_order_note(__('response : '.$body, 'woocommerce'));
 
                         // Update post meta berdasarkan data yang diperoleh
                         update_post_meta($order_id, '_digiwoo_whole_success_response', $body);                 // 1. Seluruh data response
