@@ -118,7 +118,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     'title_second' => array(
                         'title' => __('Convert Manual to Brazil Currencies', 'digiwoo_qrcode'),
                         'type'  => 'title',
-                        'description' => __('IF Disable AUTO Currency Conversion API convert order currency to BRL using Manual Rate.', 'digiwoo_qrcode'),
+                        'description' => __('IF Disable AUTO Currency Conversion API, Convert Total Order to BRL Currencies using Manual Rate.', 'digiwoo_qrcode'),
                     ),
                     
                     // Input field for rate conversion from 1 dollar to Brazilian real
