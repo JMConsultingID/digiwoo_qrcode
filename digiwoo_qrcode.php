@@ -112,30 +112,29 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $body = json_decode(wp_remote_retrieve_body($response), true);
 
                     if (isset($body['payload'])) {
-                        $resultpost_meta  = update_post_meta($order_id, 'digiwoo_pix_whole_success_response', wp_json_encode($body));
+                        $resultpost_meta  = update_post_meta($order_id, 'all_digiwoo_pix_whole_success_generate_response', wp_json_encode($body));
                         if (false === $resultpost_meta) {
                             $logger->error("Failed to update post meta for order: $order_id", $context);
                         } else {
                             $logger->info("Post meta updated successfully for order: $order_id", $context);
                         }
-                        update_post_meta($order_id, 'digiwoo_pix_id', $body['id']);
-                        update_post_meta($order_id, 'digiwoo_pix_code', $body['code']);
-                        update_post_meta($order_id, 'digiwoo_pix_amount', $body['amount']);
-                        update_post_meta($order_id, 'digiwoo_pix_payer', $body['payer']);
-                        update_post_meta($order_id, 'digiwoo_pix_status', $body['status']);
+                        update_post_meta($order_id, 'digiwoo_pix_generate_id', $body['id']);
+                        update_post_meta($order_id, 'digiwoo_pix_generate_code', $body['code']);
+                        update_post_meta($order_id, 'digiwoo_pix_generate_amount', $body['amount']);
+                        update_post_meta($order_id, 'digiwoo_pix_generate_payer', $body['payer']);
+                        update_post_meta($order_id, 'digiwoo_pix_generate_status', $body['status']);
                         if (isset($body['expiresAt'])) {
                             $expiresAt = $body['expiresAt'];
                             $dateTime = new DateTime($expiresAt);
                             $DateExpiresAt = $dateTime->format('d/m/Y H:i:s');
-                            update_post_meta($order_id, 'digiwoo_pix_expires_at', $DateExpiresAt);
+                            update_post_meta($order_id, 'digiwoo_pix_generate_expires_at', $DateExpiresAt);
                         }
 
                         // Set the order status to 'on-hold' and reduce stock levels (if applicable)
                         $order->update_status('on-hold', __('Awaiting PIX payment.', 'woocommerce'));
 
                         // Add order note with the payment payload
-                        $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
-                        $order->add_order_note(__('response : '.wp_json_encode($body), 'woocommerce'));                        
+                        $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));               
 
                         // Remove cart contents
                         WC()->cart->empty_cart();
@@ -153,15 +152,55 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 // Add notice for the user in case of error
                 wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'woocommerce'), 'error');
-                update_post_meta($order_id, 'digiwoo_pix_whole_response_error', $body);
-
+                update_post_meta($order_id, ' all_digiwoo_pix_whole_error_generate_response', wp_json_encode($body));
                 return;
             }
 
             public function check_for_ipn_response() {
                 global $woocommerce;
+                $log_data = digiwoo_get_logger();               
+
                 $requestType = !empty($_GET['digiwoo_pix_ipn']) ? $_GET['digiwoo_pix_ipn'] : '';
-                exit;
+                $data = json_decode(file_get_contents('php://input'), true);
+                if (empty($data) || !isset($data['data']['id'])) {
+                    $log_data['logger']->error('This empty response',  $log_data['context']);
+                    return;
+                }
+
+                $order_args = array(
+                    'post_type' => 'shop_order',
+                    'meta_key' => 'digiwoo_pix_generate_id',
+                    'meta_value' => $data['data']['id'],
+                    'posts_per_page' => 1,
+                );
+                $orders = get_posts($order_args);
+                if (empty($orders)) {
+                    $log_data['logger']->error('This empty order id',  $log_data['context']);
+                    return;
+                }
+
+                $order_id = $orders[0]->ID
+                update_post_meta($order_id, 'all_digiwoo_pix_whole_success_payment_response', wp_json_encode($data));
+                update_post_meta($order_id, 'digiwoo_pix_payment_id', $data['id']);
+                update_post_meta($order_id, 'digiwoo_pix_payment_event', $data['event']);
+                update_post_meta($order_id, 'digiwoo_pix_payment_signature', $data['signature']);
+ 
+                $status_payment   = isset($data['data']['status']) ? sanitize_text_field($data['data']['status']) : '';
+
+                if ($status_payment === 'PAID') {
+                    update_post_meta($order_id, 'digiwoo_pix_payment_status', $data['data']['status']);
+                    update_post_meta($order_id, 'digiwoo_pix_payment_status_delivered', $data['status']);
+                    $order->add_order_note('Payment confirmed via IPN.');
+                    $order = wc_get_order($order_id);
+                    $order->payment_complete();                    
+                } else {
+                    $order->update_status('failed');
+                    $order->add_order_note('Error Pyament : Payment not confirmed via IPN.');
+                    update_post_meta($order_id, 'all_digiwoo_pix_whole_error_payment_response', wp_json_encode($data));
+                }
+
+                status_header(200);
+                exit('OK');
             }
 
         }
@@ -315,5 +354,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function get_country_currency_map() {
         return array('AF'=>'AFN','AX'=>'EUR','AL'=>'ALL','DZ'=>'DZD','AS'=>'USD','AD'=>'EUR','AO'=>'AOA','AI'=>'XCD','AQ'=>'USD','AG'=>'XCD','AR'=>'ARS','AM'=>'AMD','AW'=>'AWG','AU'=>'AUD','AT'=>'EUR','AZ'=>'AZN','BS'=>'BSD','BH'=>'BHD','BD'=>'BDT','BB'=>'BBD','BY'=>'BYN','BE'=>'EUR','BZ'=>'BZD','BJ'=>'XOF','BM'=>'BMD','BT'=>'BTN','BO'=>'BOB','BQ'=>'USD','BA'=>'BAM','BW'=>'BWP','BV'=>'NOK','BR'=>'BRL','IO'=>'USD','VG'=>'USD','BN'=>'BND','BG'=>'BGN','BF'=>'XOF','BI'=>'BIF','CV'=>'CVE','KH'=>'KHR','CM'=>'XAF','CA'=>'CAD','KY'=>'KYD','CF'=>'XAF','TD'=>'XAF','CL'=>'CLP','CN'=>'CNY','CX'=>'AUD','CC'=>'AUD','CO'=>'COP','KM'=>'KMF','CD'=>'CDF','CG'=>'XAF','CK'=>'NZD','CR'=>'CRC','CI'=>'XOF','HR'=>'HRK','CU'=>'CUP','CW'=>'ANG','CY'=>'EUR','CZ'=>'CZK','DK'=>'DKK','DJ'=>'DJF','DM'=>'XCD','DO'=>'DOP','EC'=>'USD','EG'=>'EGP','SV'=>'USD','GQ'=>'XAF','ER'=>'ERN','EE'=>'EUR','SZ'=>'SZL','ET'=>'ETB','FK'=>'FKP','FO'=>'DKK','FJ'=>'FJD','FI'=>'EUR','FR'=>'EUR','GF'=>'EUR','PF'=>'XPF','TF'=>'EUR','GA'=>'XAF','GM'=>'GMD','GE'=>'GEL','DE'=>'EUR','GH'=>'GHS','GI'=>'GIP','GR'=>'EUR','GL'=>'DKK','GD'=>'XCD','GP'=>'EUR','GU'=>'USD','GT'=>'GTQ','GG'=>'GBP','GN'=>'GNF','GW'=>'XOF','GY'=>'GYD','HT'=>'HTG','HM'=>'AUD','VA'=>'EUR','HN'=>'HNL','HK'=>'HKD','HU'=>'HUF','IS'=>'ISK','IN'=>'INR','ID'=>'IDR','IR'=>'IRR','IQ'=>'IQD','IE'=>'EUR','IM'=>'GBP','IL'=>'ILS','IT'=>'EUR','JM'=>'JMD','JP'=>'JPY','JE'=>'GBP','JO'=>'JOD','KZ'=>'KZT','KE'=>'KES','KI'=>'AUD','KW'=>'KWD','KG'=>'KGS','LA'=>'LAK','LV'=>'EUR','LB'=>'LBP','LS'=>'LSL','LR'=>'LRD','LY'=>'LYD','LI'=>'CHF','LT'=>'EUR','LU'=>'EUR','MO'=>'MOP','MG'=>'MGA','MW'=>'MWK','MY'=>'MYR','MV'=>'MVR','ML'=>'XOF','MT'=>'EUR','MH'=>'USD','MQ'=>'EUR','MR'=>'MRU','MU'=>'MUR','YT'=>'EUR','MX'=>'MXN','FM'=>'USD','MD'=>'MDL','MC'=>'EUR','MN'=>'MNT','ME'=>'EUR','MS'=>'XCD','MA'=>'MAD','MZ'=>'MZN','MM'=>'MMK','NA'=>'NAD','NR'=>'AUD','NP'=>'NPR','NL'=>'EUR','NC'=>'XPF','NZ'=>'NZD','NI'=>'NIO','NE'=>'XOF','NG'=>'NGN','NU'=>'NZD','NF'=>'AUD','KP'=>'KPW','MK'=>'MKD','NO'=>'NOK','OM'=>'OMR','PK'=>'PKR','PW'=>'USD','PS'=>'ILS','PA'=>'PAB','PG'=>'PGK','PY'=>'PYG','PE'=>'PEN','PH'=>'PHP','PN'=>'NZD','PL'=>'PLN','PT'=>'EUR','PR'=>'USD','QA'=>'QAR','RE'=>'EUR','RO'=>'RON','RU'=>'RUB','RW'=>'RWF','BL'=>'EUR','SH'=>'SHP','KN'=>'XCD','LC'=>'XCD','MF'=>'EUR','PM'=>'EUR','VC'=>'XCD','WS'=>'WST','SM'=>'EUR','ST'=>'STN','SA'=>'SAR','SN'=>'XOF','RS'=>'RSD','SC'=>'SCR','SL'=>'SLL','SG'=>'SGD','SX'=>'ANG','SK'=>'EUR','SI'=>'EUR','SB'=>'SBD','SO'=>'SOS','ZA'=>'ZAR','GS'=>'GBP','KR'=>'KRW','SS'=>'SSP','ES'=>'EUR','LK'=>'LKR','SD'=>'SDG','SR'=>'SRD','SJ'=>'NOK','SE'=>'SEK','CH'=>'CHF','SY'=>'SYP','TW'=>'TWD','TJ'=>'TJS','TZ'=>'TZS','TH'=>'THB','TL'=>'USD','TG'=>'XOF','TK'=>'NZD','TO'=>'TOP','TT'=>'TTD','TN'=>'TND','TR'=>'TRY','TM'=>'TMT','TC'=>'USD','TV'=>'AUD','UG'=>'UGX','UA'=>'UAH','AE'=>'AED','GB'=>'GBP','US'=>'USD','UM'=>'USD','VI'=>'USD','UY'=>'UYU','UZ'=>'UZS','VU'=>'VUV','VE'=>'VES','VN'=>'VND','WF'=>'XPF','EH'=>'MAD','YE'=>'YER','ZM'=>'ZMW','ZW'=>'ZWL');
     }
+
+    function digiwoo_get_logger() {
+        $logger = wc_get_logger();
+        $context = array('source' => 'digiwoo_qrcode');
+        return array('logger' => $logger, 'context' => $context);
+    }
+
 
 }
