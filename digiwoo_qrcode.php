@@ -275,7 +275,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 if ($status_payment === 'PAID') {
                     $order = wc_get_order($order_id);
-                    $log_data['logger']->info('order  : '.$order  $log_data['context']);
+                    $log_data['logger']->info('order  : '.$order, $log_data['context']);
                     update_post_meta($order_id, 'digiwoo_pix_payment_status', $data['data']['status']);
                     update_post_meta($order_id, 'digiwoo_pix_payment_status_delivered', $data['status']);
                     $order->add_order_note('Payment confirmed via IPN.');                    
