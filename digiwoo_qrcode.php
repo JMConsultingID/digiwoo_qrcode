@@ -13,14 +13,6 @@
  * Domain Path:       /languages
  */
 
-
-/**
- * Plugin Name: DigiWoo QRCode for WooCommerce
- * Description: Adds a PIX QRCode payment method to WooCommerce.
- * Version: 1.0
- * Author: Ardika JM-Consulting
- */
-
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
