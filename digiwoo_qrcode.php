@@ -357,9 +357,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function convert_amount($amount, $from_currency, $to_currency) {
         $options = get_option('woocommerce_pix_qrcode_settings');
         $log_data = digiwoo_get_logger();
-        $log_data['logger']->info('This is API Currencies.'.$options['api_url'], $log_data['context']);
-        $log_data['logger']->info('This is APP Currencies.'.$options['app_id'], $log_data['context']);
-
         $api_url = isset($options['api_url']) ? $options['api_url'] : 'https://openexchangerates.org/api/latest.json';
         $app_id = isset($options['app_id']) ? $options['app_id'] : '8d6942c3613f4282aaf251198c8ebd05';
 
