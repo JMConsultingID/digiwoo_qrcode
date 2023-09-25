@@ -112,7 +112,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $body = json_decode(wp_remote_retrieve_body($response), true);
 
                     if (isset($body['payload'])) {
-                        $resultpost_meta  = update_post_meta($order_id, '_digiwoo_whole_success_response', wp_json_encode($body));
+                        $resultpost_meta  = update_post_meta($order_id, 'digiwoo_whole_success_response', wp_json_encode($body));
                         if (false === $resultpost_meta) {
                             $logger->error("Failed to update post meta for order: $order_id", $context);
                         } else {
