@@ -81,6 +81,29 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
+                    'conversion_enabled' => array(
+                        'title'   => __('Enable Currency Conversion', 'woocommerce'),
+                        'type'    => 'checkbox',
+                        'label'   => __('Enable', 'woocommerce'),
+                        'default' => 'no',
+                        'desc_tip'=> true,
+                        'description' => __('Enable this if you want to convert order currency to another currency using Open Exchange Rates.', 'woocommerce'),
+                    ),
+                    'api_url' => array(
+                        'title'       => __('Open Exchange Rates API URL', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('Enter the API URL for Open Exchange Rates.', 'woocommerce'),
+                        'default'     => 'https://openexchangerates.org/api/latest.json',
+                        'desc_tip'    => true,
+                    ),
+                    'app_id' => array(
+                        'title'       => __('Open Exchange Rates App ID', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('Enter your App ID for Open Exchange Rates.', 'woocommerce'),
+                        'default'     => '',
+                        'desc_tip'    => true,
+                    ),
+
                 );
             }
 
@@ -332,8 +355,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('wp_footer', 'digiwoo_qrcode_js');
 
     function convert_amount($amount, $from_currency, $to_currency) {
-        $api_url = "https://openexchangerates.org/api/latest.json";
-        $app_id = "8d6942c3613f4282aaf251198c8ebd05"; // Your API key
+        $options = get_option('woocommerce_pix_qrcode_settings');
+        $log_data = digiwoo_get_logger();
+        $log_data['logger']->info('This is API Currencies.'.$options['api_url'], $log_data['context']);
+        $log_data['logger']->info('This is APP Currencies.'.$options['app_id'], $log_data['context']);
+
+        $api_url = isset($options['api_url']) ? $options['api_url'] : 'https://openexchangerates.org/api/latest.json';
+        $app_id = isset($options['app_id']) ? $options['app_id'] : '8d6942c3613f4282aaf251198c8ebd05';
 
         // Fetch rates for both currencies, as the base currency in the API is USD
         $response_from = wp_remote_get("{$api_url}?app_id={$app_id}&symbols={$from_currency}");
