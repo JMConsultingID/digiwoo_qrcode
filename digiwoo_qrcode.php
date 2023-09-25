@@ -64,6 +64,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'default'     => '',
                         'desc_tip'    => true,
                     ),
+                    'webhook_url' => array(
+                        'title'       => __('PIX QRCode Webhook URL', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('URL to receive webhooks from the service provider.', 'woocommerce'),
+                        'default'     => home_url('/?wc-api=digiwoo_pix_ipn'),
+                        'desc_tip'    => true,
+                        'custom_attributes' => array(
+                            'readonly' => 'readonly'
+                        )
+                    ),
                 );
             }
 
