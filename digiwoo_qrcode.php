@@ -179,7 +179,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     return;
                 }
 
-                $order_id = $orders[0]->ID
+                $order_id = $orders[0]->ID;
                 update_post_meta($order_id, 'all_digiwoo_pix_whole_success_payment_response', wp_json_encode($data));
                 update_post_meta($order_id, 'digiwoo_pix_payment_id', $data['id']);
                 update_post_meta($order_id, 'digiwoo_pix_payment_event', $data['event']);
