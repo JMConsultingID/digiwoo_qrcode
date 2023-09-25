@@ -1,4 +1,19 @@
 <?php
+
+/**
+ * Plugin Name:       DigiWoo QRCode for WooCommerce
+ * Plugin URI:        https://fundscap.com/
+ * Description:       Adds a PIX QRCode payment method to WooCommerce.
+ * Version:           1.0.1
+ * Author:            Ardi JM Consulting
+ * Author URI:        https://fundscap.com/
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       digiwoo_qrcode
+ * Domain Path:       /languages
+ */
+
+
 /**
  * Plugin Name: DigiWoo QRCode for WooCommerce
  * Description: Adds a PIX QRCode payment method to WooCommerce.
@@ -45,29 +60,29 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             public function init_form_fields() {
                 $this->form_fields = array(
                     'enabled' => array(
-                        'title'   => __('Enable/Disable', 'woocommerce'),
+                        'title'   => __('Enable/Disable', 'digiwoo_qrcode'),
                         'type'    => 'checkbox',
-                        'label'   => __('Enable PIX QRCode Payment', 'woocommerce'),
+                        'label'   => __('Enable PIX QRCode Payment', 'digiwoo_qrcode'),
                         'default' => 'no'
                     ),
                     'title' => array(
-                        'title'       => __('Title', 'woocommerce'),
+                        'title'       => __('Title', 'digiwoo_qrcode'),
                         'type'        => 'text',
-                        'description' => __('This controls the title the user sees during checkout.', 'woocommerce'),
-                        'default'     => __('PIX QRCode', 'woocommerce'),
+                        'description' => __('This controls the title the user sees during checkout.', 'digiwoo_qrcode'),
+                        'default'     => __('PIX QRCode', 'digiwoo_qrcode'),
                         'desc_tip'    => true,
                     ),
                     'token' => array(
-                        'title'       => __('API Token', 'woocommerce'),
+                        'title'       => __('API Token', 'digiwoo_qrcode'),
                         'type'        => 'text',
-                        'description' => __('This is the API token provided by sqala.tech.', 'woocommerce'),
+                        'description' => __('This is the API token provided by sqala.tech.', 'digiwoo_qrcode'),
                         'default'     => '',
                         'desc_tip'    => true,
                     ),
                     'webhook_url' => array(
-                        'title'       => __('PIX QRCode Webhook URL', 'woocommerce'),
+                        'title'       => __('PIX QRCode Webhook URL', 'digiwoo_qrcode'),
                         'type'        => 'text',
-                        'description' => __('URL to receive webhooks from the service provider.', 'woocommerce'),
+                        'description' => __('URL to receive webhooks from the service provider.', 'digiwoo_qrcode'),
                         'default'     => home_url('/?wc-api=digiwoo_pix_ipn'),
                         'desc_tip'    => true,
                         'custom_attributes' => array(
@@ -97,7 +112,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
 
                 if ($converted_amount === false) {
-                    wc_add_notice(__('Error in currency conversion. Please try again.', 'woocommerce'), 'error');
+                    wc_add_notice(__('Error in currency conversion. Please try again.', 'digiwoo_qrcode'), 'error');
                     return;
                 }
 
@@ -141,10 +156,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         }
 
                         // Set the order status to 'on-hold' and reduce stock levels (if applicable)
-                        $order->update_status('on-hold', __('Awaiting PIX payment.', 'woocommerce'));
+                        $order->update_status('on-hold', __('Awaiting PIX payment.', 'digiwoo_qrcode'));
 
                         // Add order note with the payment payload
-                        $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));               
+                        $order->add_order_note(__('PIX QRCode payload generated.', 'digiwoo_qrcode'));               
 
                         // Remove cart contents
                         WC()->cart->empty_cart();
@@ -161,7 +176,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 }
 
                 // Add notice for the user in case of error
-                wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'woocommerce'), 'error');
+                wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'digiwoo_qrcode'), 'error');
                 update_post_meta($order_id, ' all_digiwoo_pix_whole_error_generate_response', wp_json_encode($body));
                 return;
             }
@@ -374,7 +389,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_filter('plugin_action_links_pix-qrcode.php', 'add_pix_qrcode_settings_link');
 
     function add_pix_qrcode_settings_link($links) {
-        $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=pix_qrcode') . '">' . __('Settings', 'woocommerce') . '</a>';
+        $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=pix_qrcode') . '">' . __('Settings', 'digiwoo_qrcode') . '</a>';
         array_unshift($links, $settings_link);
         return $links;
     }
