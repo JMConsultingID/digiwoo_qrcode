@@ -245,6 +245,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 $requestType = !empty($_GET['digiwoo_pix_ipn']) ? $_GET['digiwoo_pix_ipn'] : '';
                 $data = json_decode(file_get_contents('php://input'), true);
+                $log_data['logger']->info('response ipn : '.$data,  $log_data['context']);
                 if (empty($data) || !isset($data['data']['id'])) {
                     $log_data['logger']->error('This empty response ipn',  $log_data['context']);
                     return;
@@ -258,7 +259,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 );
                 $orders = get_posts($order_args);
                 if (empty($orders)) {
-                    $log_data['logger']->error('This empty order id',  $log_data['context']);
+                    $log_data['logger']->error('This empty order id for response : '.$data['data']['id'],  $log_data['context']);
                     return;
                 }
 
