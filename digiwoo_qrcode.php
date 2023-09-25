@@ -371,5 +371,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         return array('logger' => $logger, 'context' => $context);
     }
 
+    add_filter('plugin_action_links_pix-qrcode.php', 'add_pix_qrcode_settings_link');
+
+    function add_pix_qrcode_settings_link($links) {
+        $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=pix_qrcode') . '">' . __('Settings', 'woocommerce') . '</a>';
+        array_unshift($links, $settings_link);
+        return $links;
+    }
 
 }
