@@ -142,7 +142,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 $options = get_option('woocommerce_pix_qrcode_settings');
 
-                if (isset($options['conversion_enabled']) && $options['conversion_enabled'] == 'enable') {
+                if (isset($options['conversion_enabled']) && $options['conversion_enabled'] == 'yes') {
                     // Convert using API
                     $converted_amount = convert_amount($order->get_total(), $default_currency, $target_currency);
                     $logger->info("converted_amount using API : $converted_amount", $context);
