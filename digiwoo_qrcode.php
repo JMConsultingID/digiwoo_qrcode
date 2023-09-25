@@ -39,6 +39,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 // Save settings.
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
+                add_action( 'woocommerce_api_digiwoo_pix_ipn', array( $this, 'check_for_ipn_response' ) );
             }
 
             public function init_form_fields() {
@@ -114,6 +115,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         // Add order note with the payment payload
                         $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
 
+                        // Update post meta berdasarkan data yang diperoleh
+                        update_post_meta($order_id, '_digiwoo_whole_success_response', $body);                 // 1. Seluruh data response
+                        update_post_meta($order_id, '_digiwoo_id', $body['id']);                      // 2. ID
+                        update_post_meta($order_id, '_digiwoo_code', $body['code']);                  // 3. Code
+                        update_post_meta($order_id, '_digiwoo_amount', $body['amount']);              // 4. Amount
+                        update_post_meta($order_id, '_digiwoo_payer', $body['payer']);                // 5. Payer (ini akan menyimpan array dari payer)
+                        update_post_meta($order_id, '_digiwoo_status', $body['status']);              // 6. Status
+
                         // Remove cart contents
                         WC()->cart->empty_cart();
 
@@ -130,9 +139,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 // Add notice for the user in case of error
                 wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'woocommerce'), 'error');
+                update_post_meta($order_id, '_digiwoo_whole_response_error', $body);
 
                 return;
             }
+
+            public function check_for_ipn_response() {
+                global $woocommerce;
+                $requestType = !empty($_GET['digiwoo_pix_ipn']) ? $_GET['digiwoo_pix_ipn'] : '';
+                exit;
+            }
+
         }
 
         // Add the gateway to WooCommerce
