@@ -82,7 +82,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         )
                     ),
                     'conversion_enabled' => array(
-                        'title'   => __('Enable Currency Conversion', 'woocommerce'),
+                        'title'   => __('Enable AUTO Currency Conversion API', 'woocommerce'),
                         'type'    => 'checkbox',
                         'label'   => __('Enable', 'woocommerce'),
                         'default' => 'no',
@@ -101,6 +101,27 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'type'        => 'text',
                         'description' => __('Enter your App ID for Open Exchange Rates.', 'woocommerce'),
                         'default'     => '',
+                        'desc_tip'    => true,
+                    ),
+                    'app_id' => array(
+                        'title'       => __('Open Exchange Rates App ID', 'woocommerce'),
+                        'type'        => 'text',
+                        'description' => __('Enter your App ID for Open Exchange Rates.', 'woocommerce'),
+                        'default'     => '',
+                        'desc_tip'    => true,
+                    ),
+                    'title_second' => array(
+                        'title' => __('Convert Manual to Brazil Currencies', 'digiwoo_qrcode'),
+                        'type'  => 'title',
+                        'description' => __('IF Disable AUTO Currency Conversion API convert order currency to BRL using Manual Rate.', 'digiwoo_qrcode'),
+                    ),
+                    
+                    // Input field for rate conversion from 1 dollar to Brazilian real
+                    'rate_usd_to_brl' => array(
+                        'title'       => __('Rate: 1 USD to BRL', 'digiwoo_qrcode'),
+                        'type'        => 'text',
+                        'description' => __('Enter the conversion rate for 1 USD to Brazilian real.', 'digiwoo_qrcode'),
+                        'default'     => '5.00',  // Example default value. You can set it to a more accurate or recent rate.
                         'desc_tip'    => true,
                     ),
 
