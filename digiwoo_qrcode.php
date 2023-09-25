@@ -265,6 +265,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 }
 
                 $order_id = $orders[0]->ID;
+                $log_data['logger']->info('order_id  : '.$order_id,  $log_data['context']);
                 update_post_meta($order_id, 'all_digiwoo_pix_whole_success_payment_response', wp_json_encode($data));
                 update_post_meta($order_id, 'digiwoo_pix_payment_id', $data['id']);
                 update_post_meta($order_id, 'digiwoo_pix_payment_event', $data['event']);
@@ -273,11 +274,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $status_payment   = isset($data['data']['status']) ? sanitize_text_field($data['data']['status']) : '';
 
                 if ($status_payment === 'PAID') {
+                    $order = wc_get_order($order_id);
+                    $log_data['logger']->info('order  : '.$order  $log_data['context']);
                     update_post_meta($order_id, 'digiwoo_pix_payment_status', $data['data']['status']);
                     update_post_meta($order_id, 'digiwoo_pix_payment_status_delivered', $data['status']);
-                    $order->add_order_note('Payment confirmed via IPN.');
-                    $order = wc_get_order($order_id);
-                    $order->payment_complete();                    
+                    $order->add_order_note('Payment confirmed via IPN.');                    
+                    $order->payment_complete();
+                    $order->update_status('completed');      
                 } else {
                     $order->update_status('failed');
                     $order->add_order_note('Error Pyament : Payment not confirmed via IPN.');
