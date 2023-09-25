@@ -116,13 +116,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
                         $order->add_order_note(__('response : '.wp_json_encode($body), 'woocommerce'));
 
-                        // Update post meta berdasarkan data yang diperoleh
-                        update_post_meta($order_id, '_digiwoo_whole_success_response', wp_json_encode($body));                 // 1. Seluruh data response
-                        update_post_meta($order_id, '_digiwoo_id', $body['id']);                      // 2. ID
-                        update_post_meta($order_id, '_digiwoo_code', $body['code']);                  // 3. Code
-                        update_post_meta($order_id, '_digiwoo_amount', $body['amount']);              // 4. Amount
-                        update_post_meta($order_id, '_digiwoo_payer', $body['payer']);                // 5. Payer (ini akan menyimpan array dari payer)
-                        update_post_meta($order_id, '_digiwoo_status', $body['status']);              // 6. Status
+                        $resultpost_meta = update_post_meta($order_id, '_digiwoo_whole_success_response', wp_json_encode($body));
+                        if (false === $resultpost_meta) {
+                            error_log("Failed to update post meta for order: $order_id");
+                        }
 
                         // Remove cart contents
                         WC()->cart->empty_cart();
