@@ -112,12 +112,24 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $body = json_decode(wp_remote_retrieve_body($response), true);
 
                     if (isset($body['payload'])) {
-                        $resultpost_meta  = update_post_meta($order_id, 'digiwoo_whole_success_response', wp_json_encode($body));
+                        $resultpost_meta  = update_post_meta($order_id, 'digiwoo_pix_whole_success_response', wp_json_encode($body));
                         if (false === $resultpost_meta) {
                             $logger->error("Failed to update post meta for order: $order_id", $context);
                         } else {
                             $logger->info("Post meta updated successfully for order: $order_id", $context);
                         }
+                        update_post_meta($order_id, 'digiwoo_pix_id', $body['id']);
+                        update_post_meta($order_id, 'digiwoo_pix_code', $body['code']);
+                        update_post_meta($order_id, 'digiwoo_pix_amount', $body['amount']);
+                        update_post_meta($order_id, 'digiwoo_pix_payer', $body['payer']);
+                        update_post_meta($order_id, 'digiwoo_pix_status', $body['status']);
+                        if (isset($body['expiresAt'])) {
+                            $expiresAt = $body['expiresAt'];
+                            $dateTime = new DateTime($expiresAt);
+                            $DateExpiresAt = $dateTime->format('d/m/Y H:i:s');
+                            update_post_meta($order_id, 'digiwoo_pix_expires_at', $DateExpiresAt);
+                        }
+
                         // Set the order status to 'on-hold' and reduce stock levels (if applicable)
                         $order->update_status('on-hold', __('Awaiting PIX payment.', 'woocommerce'));
 
@@ -141,7 +153,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                 // Add notice for the user in case of error
                 wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'woocommerce'), 'error');
-                update_post_meta($order_id, '_digiwoo_whole_response_error', $body);
+                update_post_meta($order_id, 'digiwoo_pix_whole_response_error', $body);
 
                 return;
             }
