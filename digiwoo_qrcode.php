@@ -68,6 +68,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             }
 
             public function process_payment($order_id) {
+                $logger = wc_get_logger();
+                $context = array( 'source' => 'digiwoo_qrcode' );
+
                 $order = wc_get_order($order_id);
 
                 $billing_country = $order->get_billing_country();
@@ -109,17 +112,18 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $body = json_decode(wp_remote_retrieve_body($response), true);
 
                     if (isset($body['payload'])) {
+                        $resultpost_meta  = update_post_meta($order_id, '_digiwoo_whole_success_response', wp_json_encode($body));
+                        if (false === $resultpost_meta) {
+                            $logger->error("Failed to update post meta for order: $order_id", $context);
+                        } else {
+                            $logger->info("Post meta updated successfully for order: $order_id", $context);
+                        }
                         // Set the order status to 'on-hold' and reduce stock levels (if applicable)
                         $order->update_status('on-hold', __('Awaiting PIX payment.', 'woocommerce'));
 
                         // Add order note with the payment payload
                         $order->add_order_note(__('PIX QRCode payload generated.', 'woocommerce'));
-                        $order->add_order_note(__('response : '.wp_json_encode($body), 'woocommerce'));
-
-                        $resultpost_meta = update_post_meta($order_id, '_digiwoo_whole_success_response', wp_json_encode($body));
-                        if (false === $resultpost_meta) {
-                            error_log("Failed to update post meta for order: $order_id");
-                        }
+                        $order->add_order_note(__('response : '.wp_json_encode($body), 'woocommerce'));                        
 
                         // Remove cart contents
                         WC()->cart->empty_cart();
