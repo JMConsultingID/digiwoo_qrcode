@@ -203,7 +203,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $requestType = !empty($_GET['digiwoo_pix_ipn']) ? $_GET['digiwoo_pix_ipn'] : '';
                 $data = json_decode(file_get_contents('php://input'), true);
                 if (empty($data) || !isset($data['data']['id'])) {
-                    $log_data['logger']->error('This empty response',  $log_data['context']);
+                    $log_data['logger']->error('This empty response ipn',  $log_data['context']);
                     return;
                 }
 
