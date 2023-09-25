@@ -140,9 +140,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $default_currency = get_woocommerce_currency();
                 $target_currency = 'BRL';
 
+                $options = get_option('woocommerce_pix_qrcode_settings');
 
-                // Convert from WooCommerce default currency to target currency
-                $converted_amount = convert_amount($order->get_total(), $default_currency, $target_currency);
+                if (isset($options['conversion_enabled']) && $options['conversion_enabled'] == 'enable') {
+                    // Convert using API
+                    $converted_amount = convert_amount($order->get_total(), $default_currency, $target_currency);
+                } else {
+                    // Manual conversion using the rate_usd_to_brl setting
+                    if (isset($options['rate_usd_to_brl']) && is_numeric($options['rate_usd_to_brl'])) {
+                        $rate = floatval($options['rate_usd_to_brl']);
+                        $converted_amount = $order->get_total() * $rate;
+                    } else {
+                        wc_add_notice(__('Error in currency conversion. Please try again.', 'digiwoo_qrcode'), 'error');
+                        return;
+                    }
+                }
 
                 $formatted_amount = intval($converted_amount * 100); // This formats the number to two decimal places like money
 
