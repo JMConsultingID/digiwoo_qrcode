@@ -81,6 +81,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
+                    'title_first' => array(
+                        'title' => __('Auo Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
+                        'type'  => 'title',
+                        'description' => __('if enable, it will automatically convert currency to brazil via openexchangerates.org API (see API price details: <a href="https://openexchangerates.org/signup" target="_blank">see detail pricing</a> Free Plan provides hourly updates (with base currency USD) and up to 1,000 requests/month.)', 'digiwoo_qrcode'),
+                    ),
                     'conversion_enabled' => array(
                         'title'   => __('Enable AUTO Currency Conversion API', 'woocommerce'),
                         'type'    => 'checkbox',
