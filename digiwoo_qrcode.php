@@ -459,31 +459,4 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         return $links;
     }
 
-    function add_hidden_referral_field_to_checkout( $checkout ) {
-    $referral_id = get_referral_id_from_url();
-        // Add a hidden field to the checkout
-        woocommerce_form_field( '_ref', array(
-            'type'          => 'hidden',
-            'class'         => array('referral-id-hidden-field'),
-            'label_class'   => array('hidden'),
-            'input_class'   => array('hidden'),
-        ), $referral_id );
-    }
-    add_action( 'woocommerce_after_checkout_billing_form', 'add_hidden_referral_field_to_checkout' );
-
-
-    function get_referral_id_from_url() {
-        if( isset($_GET['_ref']) ) {
-            return sanitize_text_field( $_GET['_ref'] );
-        }
-        return '';
-    }
-
-    function save_referral_id_in_order_meta( $order_id ) {
-    if( !empty($_POST['_ref']) ) {
-            update_post_meta( $order_id, 'reference_id', sanitize_text_field($_POST['_ref']) );
-        }
-    }
-    add_action( 'woocommerce_checkout_update_order_meta', 'save_referral_id_in_order_meta' );
-
 }
