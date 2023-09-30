@@ -373,9 +373,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         icon: 'info',
                                         confirmButtonText: 'Close'
                                     }).then(() => {
-                                    // This will be executed after the close button is clicked
-                                    localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
-                                    location.reload(); // Reload the page
+                                        // This will be executed after the close button is clicked
+                                        localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                                        location.reload(); // Reload the page
+                                    });
                                     return;
                                 }
 
