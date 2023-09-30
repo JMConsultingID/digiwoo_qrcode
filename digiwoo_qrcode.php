@@ -358,11 +358,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         preConfirm: () => {
                         return new Promise((resolve, reject) => {
                             let attempts = 0;
-                            const maxAttempts = 5;
+                            const maxAttempts = 2;
 
                             function checkPaymentStatus() {
                                 if (attempts >= maxAttempts) {
-                                    reject('Payment confirmation took too long. Please check your order status later.');
+                                    // Display the info message when the max attempts are reached
+                                    Swal.fire({
+                                        title: 'Notice',
+                                        text: 'Payment confirmation took too long. Please check your order status later.',
+                                        icon: 'info',
+                                        confirmButtonText: 'Close'
+                                    });
                                     return;
                                 }
 
