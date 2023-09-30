@@ -360,6 +360,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         allowOutsideClick: false,
                         confirmButtonText: 'Proceed to Payment',
                         preConfirm: () => {
+                        Swal.fire({
+                                        title: 'Processing Payment...',
+                                        text: 'Please wait...',
+                                        showConfirmButton: false,
+                                        allowOutsideClick: false,
+                                        allowEscapeKey: false,
+                                        allowEnterKey: false,
+                                        onOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
                         return new Promise((resolve, reject) => {
                             let attempts = 0;
                             const maxAttempts = 2;
@@ -369,7 +380,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     // Display the info message when the max attempts are reached
                                     Swal.fire({
                                         title: 'Notice',
-                                        text: 'Payment confirmation took too long. Please check your order status later.',
+                                        text: 'Your payment is still being processed. If the payment is successful, you will be notified via email.',
                                         icon: 'info',
                                         confirmButtonText: 'Close'
                                     }).then(() => {
@@ -393,6 +404,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     success: function(response) {
                                         if (response && response.status === 'completed') {
                                             resolve('Payment confirmed successfully!');
+                                        } elseif (response && response.status === 'on-hold') {
+                                            resolve('Your payment is still being processed. If the payment is successful, you will be notified via email.');
                                         } else {
                                             setTimeout(checkPaymentStatus, 5000); // check again after 5 seconds
                                         }
@@ -409,8 +422,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Swal.fire('Success', result.value, 'success');
+                        localStorage.setItem('qr_popup_shown', 'true');
+                        location.reload();
                     } else if (result.isDismissed) {
                         Swal.fire('Notice', result.dismiss, 'info');
+                        localStorage.setItem('qr_popup_shown', 'true');
+                        location.reload();
                     }
                 });
                 });
