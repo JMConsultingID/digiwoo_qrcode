@@ -354,8 +354,51 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         html: canvas,
                         showCloseButton: false,
                         allowOutsideClick: false,
-                        confirmButtonText: 'Proceed to Payment '
-                    });
+                        confirmButtonText: 'Proceed to Payment',
+                        preConfirm: () => {
+                        return new Promise((resolve, reject) => {
+                            let attempts = 0;
+                            const maxAttempts = 5;
+
+                            function checkPaymentStatus() {
+                                if (attempts >= maxAttempts) {
+                                    reject('Payment confirmation took too long. Please check your order status later.');
+                                    return;
+                                }
+
+                                attempts++;
+
+                                jQuery.ajax({
+                                    type: 'POST',
+                                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                                    data: {
+                                        action: 'check_order_payment_status',
+                                        order_id: '<?php echo $order_id; ?>'
+                                    },
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response && response.status === 'completed') {
+                                            resolve('Payment confirmed successfully!');
+                                        } else {
+                                            setTimeout(checkPaymentStatus, 5000); // check again after 5 seconds
+                                        }
+                                    },
+                                    error: function() {
+                                        reject('Error checking payment status.');
+                                    }
+                                });
+                            }
+
+                            checkPaymentStatus();
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('Success', result.value, 'success');
+                    } else if (result.isDismissed) {
+                        Swal.fire('Notice', result.dismiss, 'info');
+                    }
+                });
                 });
             </script>
             <?php
@@ -420,5 +463,27 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         array_unshift($links, $settings_link);
         return $links;
     }
+
+    function check_order_payment_status() {
+        if (!isset($_POST['order_id'])) {
+            wp_send_json_error(['message' => 'Order ID not provided.']);
+            return;
+        }
+
+        $order_id = intval($_POST['order_id']);
+        $order = wc_get_order($order_id);
+
+        if (!$order) {
+            wp_send_json_error(['message' => 'Order not found.']);
+            return;
+        }
+
+        $status = $order->get_status();
+        wp_send_json(['status' => $status]);
+    }
+
+    add_action('wp_ajax_check_order_payment_status', 'check_order_payment_status');
+    add_action('wp_ajax_nopriv_check_order_payment_status', 'check_order_payment_status');
+
 
 }
