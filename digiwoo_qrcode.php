@@ -546,7 +546,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         
         return $title;
     }
-    add_filter('woocommerce_order_get_payment_method_title', 'digiwoo_display_qr_on_thankyou', 10, 2);
+    add_filter('woocommerce_order_get_payment_method', 'digiwoo_display_qr_on_thankyou', 10, 2);
 
     // Generate the QR code if on the Thank You page
     function digiwoo_generate_qr_on_thankyou() {
