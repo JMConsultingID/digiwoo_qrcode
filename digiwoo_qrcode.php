@@ -404,7 +404,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     success: function(response) {
                                         if (response && response.status === 'completed') {
                                             resolve('Payment confirmed successfully!');
-                                        } elseif (response && response.status === 'on-hold') {
+                                        } else if (response && response.status === 'on-hold') {
                                             resolve('Your payment is still being processed. If the payment is successful, you will be notified via email.');
                                         } else {
                                             setTimeout(checkPaymentStatus, 5000); // check again after 5 seconds
