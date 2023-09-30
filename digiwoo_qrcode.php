@@ -575,35 +575,4 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_action('wp_footer', 'digiwoo_generate_qr_on_thankyou');
 
-        function digiwoo_append_qr_after_shortcode($content) {
-    // Cek apakah kita berada di Thank You page dan apakah konten yang diproses adalah hasil dari shortcode yang dimaksud
-    if (is_wc_endpoint_url('order-received') && strpos($content, '[sellkit-order-payment-method]') !== false) {
-        $order_id = absint($GLOBALS['wp']->query_vars['order-received']);
-        $order = wc_get_order($order_id);
-
-        if ($order && $order->get_payment_method() == 'pix_qrcode') {
-            $pix_payload = get_post_meta($order_id, 'digiwoo_pix_generate_payload', true);
-            
-            if (!empty($pix_payload)) {
-                // Tambahkan container untuk QR code
-                $content .= '<div id="digiwoo-qrcode-thankyou"></div>';
-                
-                // Tambahkan JavaScript untuk generate QR code
-                $content .= "
-                <script>
-                    var qrcode = new QRCode(document.getElementById('digiwoo-qrcode-thankyou'), {
-                        text: '{$pix_payload}',
-                        width: 300,
-                        height: 300
-                    });
-                </script>";
-            }
-        }
-    }
-    
-    return $content;
-}
-add_filter('the_content', 'digiwoo_append_qr_after_shortcode', 20);  // priority 20 agar dijalankan setelah shortcode lain diproses
-
-
 }
