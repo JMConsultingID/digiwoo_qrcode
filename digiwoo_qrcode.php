@@ -201,6 +201,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         } else {
                             $logger->info("Post meta updated successfully for order: $order_id", $context);
                         }
+                        update_post_meta($order_id, 'digiwoo_pix_generate_payload', $body['payload']);
                         update_post_meta($order_id, 'digiwoo_pix_generate_id', $body['id']);
                         update_post_meta($order_id, 'digiwoo_pix_generate_code', $body['code']);
                         update_post_meta($order_id, 'digiwoo_pix_generate_amount', $body['amount']);
@@ -315,7 +316,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         if (!$order_id) return;
 
         $order = wc_get_order($order_id);
-        $pix_payload = $order->get_meta('pix_payload');
+        $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $order->get_currency();
         $amount = $order->get_total();
 
