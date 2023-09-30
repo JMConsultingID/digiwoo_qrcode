@@ -305,10 +305,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
 
     function digiwoo_enqueue_scripts() {
+        if (is_checkout() || is_order_received_page()) {
         // Enqueue SweetAlert2
         wp_enqueue_script('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js');
         wp_enqueue_style('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
-        wp_enqueue_script('qrcode', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); // ganti dengan path yang sesuai
+        wp_enqueue_script('qrcode', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); 
+        }
     }
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
 
@@ -528,26 +530,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('wp_ajax_check_order_payment_status', 'check_order_payment_status');
     add_action('wp_ajax_nopriv_check_order_payment_status', 'check_order_payment_status');
 
+
     // Modify the payment method title for the order on the Thank You page.
     function digiwoo_display_qr_on_thankyou($title, $order) {
-        $order_id = $order->get_id();
-        // Check if the payment method is 'pix_qrcode' and if the order contains QR code data.
         if ($order->get_payment_method() == 'pix_qrcode') {
-            $pix_payload = get_post_meta($order_id, 'digiwoo_pix_generate_payload', true);
+            $pix_payload = get_post_meta($order->get_id(), 'digiwoo_pix_generate_payload', true);
             
             if (!empty($pix_payload)) {
-                // Generate the QR code
                 $qr_code_html = '<div id="digiwoo-qrcode-thankyou"></div>';
-                $qr_code_html .= "
-                <script>
-                    var qrcode = new QRCode(document.getElementById('digiwoo-qrcode-thankyou'), {
-                        text: '{$pix_payload}',
-                        width: 50,
-                        height: 50
-                    });
-                </script>";
                 
-                // Append the QR code to the payment method title
+                // Append the QR code container to the payment method title
                 $title .= $qr_code_html;
             }
         }
@@ -555,5 +547,33 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         return $title;
     }
     add_filter('woocommerce_order_get_payment_method_title', 'digiwoo_display_qr_on_thankyou', 10, 2);
-    
+
+    // Generate the QR code if on the Thank You page
+    function digiwoo_generate_qr_on_thankyou() {
+        if (!is_wc_endpoint_url('order-received')) {
+            return;
+        }
+
+        $order_id = absint($GLOBALS['wp']->query_vars['order-received']);
+        $order = wc_get_order($order_id);
+
+        if ($order->get_payment_method() == 'pix_qrcode') {
+            $pix_payload = get_post_meta($order_id, 'digiwoo_pix_generate_payload', true);
+
+            if (!empty($pix_payload)) {
+                ?>
+                <script>
+                    var qrcode = new QRCode(document.getElementById('digiwoo-qrcode-thankyou'), {
+                        text: '<?php echo $pix_payload; ?>',
+                        width: 300,
+                        height: 300
+                    });
+                </script>
+                <?php
+            }
+        }
+    }
+    add_action('wp_footer', 'digiwoo_generate_qr_on_thankyou');
+
+
 }
