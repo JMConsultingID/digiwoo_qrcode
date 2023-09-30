@@ -406,6 +406,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                             resolve('Payment confirmed successfully!');
                                         } else if (response && response.status === 'on-hold') {
                                             resolve('Your payment is still being processed. If the payment is successful, you will be notified via email.');
+                                          setTimeout(checkPaymentStatus, 5000);
                                         } else {
                                             setTimeout(checkPaymentStatus, 5000); // check again after 5 seconds
                                         }
@@ -421,13 +422,27 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Swal.fire('Success', result.value, 'success');
-                        localStorage.setItem('qr_popup_shown', 'true');
-                        location.reload();
+                        Swal.fire({
+                            title: 'Success',
+                            text: result.value,
+                            icon: 'success',
+                            confirmButtonText: 'Close'
+                        }).then(() => {
+                            // This will be executed after the close button is clicked
+                            localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                            location.reload(); // Reload the page
+                        });
                     } else if (result.isDismissed) {
-                        Swal.fire('Notice', result.dismiss, 'info');
-                        localStorage.setItem('qr_popup_shown', 'true');
-                        location.reload();
+                        Swal.fire({
+                            title: 'Notice',
+                            text: result.dismiss,
+                            icon: 'info',
+                            confirmButtonText: 'Close'
+                        }).then(() => {
+                            // This will be executed after the close button is clicked
+                            localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                            location.reload(); // Reload the page
+                        });
                     }
                 });
                 });
