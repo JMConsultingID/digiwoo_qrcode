@@ -311,96 +311,57 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
 
-    function digiwoo_qrcode_js() {
-        if (is_checkout()) {
+    function digiwoo_qrcode_thank_you_js($order_id) {
+        if (!$order_id) return;
+
+        $order = wc_get_order($order_id);
+        $pix_payload = $order->get_meta('pix_payload');
+        $currency = $order->get_currency();
+        $amount = $order->get_total();
+
+        if ($pix_payload) {
             ?>
             <script>
-                jQuery(document).ready(function($) {
-                    console.log('Script loaded!');  // Debugging aid
+                document.addEventListener("DOMContentLoaded", function() {
+                    let qrcode = new QRCode(document.createElement('div'), {
+                        text: '<?php echo $pix_payload; ?>',
+                        width: 300,
+                        height: 300
+                    });
 
-                    $('body').on('click', '#place_order', function(e) {
-                        if ($('#payment_method_pix_qrcode').is(':checked')) {
-                            e.preventDefault();
+                    var canvas = qrcode._el.querySelector('canvas');
+                    var ctx = canvas.getContext('2d');
 
-                            Swal.fire({
-                                title: 'Generating QR Code...',
-                                text: 'Please wait...',
-                                showConfirmButton: false,
-                                allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                allowEnterKey: false,
-                                onOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
+                    var centerX = canvas.width / 2;
+                    var centerY = canvas.height / 2;
+                    ctx.font = "25px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "white";
 
-                            console.log('Button clicked!');  // Debugging aid
+                    var textWidth = ctx.measureText('<?php echo $currency; ?>' + " " + '<?php echo $amount; ?>').width;
+                    ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);
+                    ctx.fillStyle = "black";
+                    ctx.fillText('<?php echo $currency; ?>' + " " + '<?php echo $amount; ?>', centerX, centerY);
 
-                            $.ajax({
-                                type: 'POST',
-                                url: wc_checkout_params.checkout_url,
-                                data: $('form.checkout').serialize(),
-                                dataType: 'json',
-                                success: function(response) {
-                                    console.log(response);  // Debugging aid
+                    setTimeout(() => {
+                        canvas.style.display = "inline-block";
+                    }, 100);
 
-                                    if (response.result === 'success') {
-                                        let qrcode = new QRCode(document.createElement('div'), {
-                                            text: response.pix_payload,
-                                            width: 300,
-                                            height: 300
-                                        });
-
-                                        var canvas = qrcode._el.querySelector('canvas');
-                                        var ctx = canvas.getContext('2d');
-
-                                        var centerX = canvas.width / 2;
-                                        var centerY = canvas.height / 2;
-                                        ctx.font = "25px Arial";
-                                        ctx.textAlign = "center";
-                                        ctx.textBaseline = "middle";
-                                        ctx.fillStyle = "white";
-
-                                        var textWidth = ctx.measureText(response.currency + " " + response.amount).width;
-                                        ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);  
-                                        ctx.fillStyle = "black";
-                                        ctx.fillText(response.currency + " " + response.amount, centerX, centerY);
-
-                                        setTimeout(() => {
-                                            canvas.style.display = "inline-block";
-                                        }, 100);
-
-
-                                        Swal.fire({
-                                            title: 'Your QR Code',
-                                            html: canvas,
-                                            showCloseButton: true,
-                                            allowOutsideClick: false,
-                                            confirmButtonText: 'Proceed to Payment ',
-                                            preConfirm: () => {
-                                                location.href = response.redirect; 
-                                            }
-                                        });
-                                    } else {
-                                        Swal.fire('Error', 'Error generating order.', 'error');
-                                    }
-                                },
-                                error: function(jqXHR, textStatus, errorThrown) {
-                                    Swal.fire('Error', 'AJAX error: ' + textStatus, 'error'); 
-                                    console.error('AJAX error:', textStatus, errorThrown);  // Debugging aid
-                                }
-                            });
-                        }
+                    Swal.fire({
+                        title: 'Your QR Code',
+                        html: canvas,
+                        showCloseButton: true,
+                        allowOutsideClick: false,
+                        confirmButtonText: 'Close'
                     });
                 });
             </script>
             <?php
         }
     }
+    add_action('woocommerce_thankyou', 'digiwoo_qrcode_thank_you_js');
 
-
-
-    add_action('wp_footer', 'digiwoo_qrcode_js');
 
     function convert_amount($amount, $from_currency, $to_currency) {
         $options = get_option('woocommerce_pix_qrcode_settings');
