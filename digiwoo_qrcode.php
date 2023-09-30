@@ -324,6 +324,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             ?>
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
+                    // Check local storage if the QR code popup has been shown already
+                    if (localStorage.getItem('qr_popup_shown') === 'true') {
+                        return; // If shown, exit the function
+                    }
                     let qrcode = new QRCode(document.createElement('div'), {
                         text: '<?php echo $pix_payload; ?>',
                         width: 300,
@@ -368,7 +372,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         text: 'Payment confirmation took too long. Please check your order status later.',
                                         icon: 'info',
                                         confirmButtonText: 'Close'
-                                    });
+                                    }).then(() => {
+                                    // This will be executed after the close button is clicked
+                                    localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                                    location.reload(); // Reload the page
                                     return;
                                 }
 
