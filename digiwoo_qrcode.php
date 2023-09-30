@@ -314,11 +314,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
     function digiwoo_qrcode_thank_you_js($order_id) {
         if (!$order_id) return;
-
+        $target_currency = 'BRL';
         $order = wc_get_order($order_id);
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
-        $currency = $order->get_currency();
-        $amount = $order->get_total();
+        $currency = $target_currency;
+        $amount = $order->get_meta('digiwoo_pix_generate_amount');
 
         if ($pix_payload) {
             ?>
@@ -352,9 +352,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     Swal.fire({
                         title: 'Your QR Code',
                         html: canvas,
-                        showCloseButton: true,
+                        showCloseButton: false,
                         allowOutsideClick: false,
-                        confirmButtonText: 'Close'
+                        confirmButtonText: 'Proceed to Payment '
                     });
                 });
             </script>
