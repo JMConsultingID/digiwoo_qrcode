@@ -86,6 +86,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'type'        => 'textarea',
                         'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
                         'default'     => __( "Your default instructions...", 'your-text-domain' ),
+                        'css'         => 'min-width:400px; height:200px;',
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
