@@ -619,31 +619,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-    function vh_woocommerce_admin_field_wp_editor_callback( $value ){
+function vh_woocommerce_admin_field_wp_editor_callback( $value ){
     $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
-    
-    // Tampilkan editor WYSIWYG menggunakan wp_editor
-    $editor_id = 'woocommerce_pix_qrcode_pix_qrcode_instructions';
-    $settings = array(
-        'textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions',
-        'textarea_rows' => 3,
-    );
-    ob_start();
-    wp_editor($content, $editor_id, $settings);
-    $editor_output = ob_get_clean();
 
-    // Tampilkan output field dalam tabel
-    echo '<tr valign="top">
-            <th scope="row" class="titledesc">' . esc_html($value['title']) . '</th>
-            <td class="forminp forminp-' . esc_attr($value['type']) . '">
-                ' . $editor_output . '
-                <p class="description">' . esc_html($value['desc_tip']) . '</p>
-            </td>
-          </tr>';
+    echo '<tr valign="top">';
+    echo '<th scope="row" class="titledesc">' . esc_html($value['title']) . '</th>';
+    echo '<td class="forminp">';
+    wp_editor($content, 'woocommerce_pix_qrcode_pix_qrcode_instructions', array(
+        'textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions',
+        'textarea_rows' => 5, // You can adjust the number of rows
+    ));
+    echo '<p class="description">' . esc_html($value['desc_tip']) . '</p>';
+    echo '</td>';
+    echo '</tr>';
 }
 
 add_action( 'woocommerce_admin_field_wp_editor', 'vh_woocommerce_admin_field_wp_editor_callback' );
-
 
 
 
