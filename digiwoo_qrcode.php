@@ -83,8 +83,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'wp_editor',
-                        'callback' => 'vh_woocommerce_admin_field_wp_editor_callback', // Our custom rendering function
+                        'type'     => 'textarea',
+                        'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
                     ),
@@ -328,7 +328,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
-        $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
+        $pix_instructions_title = addslashes(digiwoo_get_instructions_title_by_post_id(306));
+        $pix_instructions_content = addslashes(digiwoo_get_instructions_content_by_post_id(306));
 
         if ($pix_payload) {
             ?>
@@ -380,7 +381,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         <li><b>Save the Receipt:</b> It's a good idea to save a screenshot or keep a record of the transaction in your banking app.</li>
                                     </ol>
                                 </div>
-                                <?php echo nl2br(esc_js($pix_instructions)); ?>
+                                
+                                <?php echo $pix_instructions_title; ?>
+                                <?php echo $pix_instructions_content; ?>
                             </div>
                         `,
                         showCloseButton: false,
@@ -619,27 +622,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-function vh_woocommerce_admin_field_wp_editor_callback( $value ){
-    $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
+    function digiwoo_get_instructions_content_by_post_id($post_id) {
+        $post = get_post($post_id);
+        return $post ? $post->post_content : '';
+    }
 
-    echo '<tr valign="top">';
-    echo '<th scope="row" class="titledesc">' . esc_html($value['title']) . '</th>';
-    echo '<td class="forminp">';
-    wp_editor($content, 'woocommerce_pix_qrcode_pix_qrcode_instructions', array(
-        'textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions',
-        'textarea_rows' => 5, // You can adjust the number of rows
-    ));
-    echo '<p class="description">' . esc_html($value['desc_tip']) . '</p>';
-    echo '</td>';
-    echo '</tr>';
-}
-
-add_action( 'woocommerce_admin_field_wp_editor', 'vh_woocommerce_admin_field_wp_editor_callback' );
-
-
-
-
-
+    function digiwoo_get_instructions_title_by_post_id($post_id) {
+        $post = get_post($post_id);
+        return $post ? $post->post_title : '';
+    }
 
 
 }
