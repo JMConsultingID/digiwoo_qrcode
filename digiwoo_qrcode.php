@@ -622,7 +622,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function render_custom_pix_qrcode_instruction_field() {
     $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
 
-    echo '<textarea rows="3" cols="20" class="input-text wide-input " type="textarea" name="woocommerce_pix_qrcode_pix_qrcode_instructions" id="woocommerce_pix_qrcode_pix_qrcode_instructions" style="" placeholder=""></textarea>';
+    echo '<textarea rows="3" cols="50" class="input-text wide-input " type="textarea" name="woocommerce_pix_qrcode_pix_qrcode_instructions" id="woocommerce_pix_qrcode_pix_qrcode_instructions" style="" placeholder=""></textarea>';
 
     echo '<script>
         jQuery(document).ready(function($){
