@@ -83,7 +83,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'textarea',
+                        'type'     => 'editor',
                         'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
@@ -620,20 +620,18 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-    $value = get_option('pix_qrcode_instructions');
-    $editor_id = 'pix_qrcode_instructions';
+        $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
 
-    echo '<textarea id="' . $editor_id . '" name="pix_qrcode_instructions" rows="10">' . esc_textarea($value) . '</textarea>';
+        $editor_id = 'woocommerce_pix_qrcode_pix_qrcode_instructions';
+        $settings = array(
+            'textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions',
+            'editor_class' => 'wide-input', // Sesuaikan kelas editor
+            'textarea_rows' => 3, // Sesuaikan jumlah baris textarea
+        );
 
-    wp_editor('', $editor_id, array(
-        'media_buttons' => false,
-        'textarea_name' => $editor_id,
-        'teeny'         => true,
-        'textarea_rows' => 10,
-    ));
-
-    echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
-}
+        wp_editor($content, $editor_id, $settings);
+        echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
+    }
 
 
 
