@@ -82,11 +82,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         )
                     ),
                     'pix_qrcode_instructions' => array(
-                        'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
-                        'type'        => 'textarea',
-                        'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
-                        'default'     => __( "Your default instructions...", 'your-text-domain' ),
-                        'css'         => 'min-width:400px; height:200px;',
+                        'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
+                        'type'     => 'custom',
+                        'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
+                        'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
+                        'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
@@ -490,7 +490,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         // Check for errors
         if (is_wp_error($response_from) || is_wp_error($response_to)) {
             // Handle the error
-            wc_add_notice(__('Error fetching currency conversion rates. Please try again later.', 'your-text-domain'), 'error');
+            wc_add_notice(__('Error fetching currency conversion rates. Please try again later.', 'digiwoo_qrcode'), 'error');
             return; // Return original amount if there's an error
         }
 
@@ -501,7 +501,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $data_to = json_decode($body_to, true);
 
         if (!isset($data_from['rates'][$from_currency]) || !isset($data_to['rates'][$to_currency])) {
-            wc_add_notice(__('Unexpected currency data received. Please try again later.', 'your-text-domain'), 'error');
+            wc_add_notice(__('Unexpected currency data received. Please try again later.', 'digiwoo_qrcode'), 'error');
             return; // Return original amount if there's an error
         }
 
@@ -610,32 +610,24 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-    function render_wysiwyg_for_pix_qrcode_instructions($field) {
-        $value = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
-        wp_editor( htmlspecialchars_decode( $value ), 'woocommerce_pix_qrcode_settings[pix_qrcode_instructions]', array('textarea_name' => 'woocommerce_pix_qrcode_settings[pix_qrcode_instructions]') );
+    function render_custom_pix_qrcode_instruction_field() {
+        $option_value = get_option('pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
+        wp_editor($option_value, 'pix_qrcode_instructions', array(
+            'media_buttons' => true,
+            'textarea_name' => 'pix_qrcode_instructions',
+            'textarea_rows' => 10,
+            'tinymce' => true
+        ));
     }
 
-    add_action('woocommerce_admin_field_wysiwyg', 'render_wysiwyg_for_pix_qrcode_instructions');
 
-    function load_wysiwyg_scripts( $hook ) {
-        if ( $hook == 'woocommerce_page_wc-settings' ) {
-            wp_enqueue_script( 'jquery' );
-            wp_enqueue_script( 'jquery-ui-core' );
-            wp_enqueue_script( 'jquery-ui-widget' );
-            wp_enqueue_script( 'jquery-ui-mouse' );
-            wp_enqueue_script( 'jquery-ui-sortable' );
-            wp_enqueue_script( 'jquery-ui-draggable' );
-            wp_enqueue_script( 'jquery-ui-droppable' );
-            wp_enqueue_script( 'jquery-ui-resizable' );
-            wp_enqueue_script( 'jquery-ui-button' );
-            wp_enqueue_script( 'jquery-ui-position' );
-            wp_enqueue_script( 'wp-tinymce' );
-            wp_enqueue_script( 'editor' );
-            wp_enqueue_script( 'quicktags' );
-        }
+    function custom_plugin_admin_scripts() {
+        wp_enqueue_media();   // if you want to use the media uploader
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('wp-tinymce');
+        wp_enqueue_script('editor');
     }
-
-    add_action( 'admin_enqueue_scripts', 'load_wysiwyg_scripts' );
+    add_action('admin_enqueue_scripts', 'custom_plugin_admin_scripts');
 
 
 }
