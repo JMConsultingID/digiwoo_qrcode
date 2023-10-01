@@ -531,48 +531,27 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('wp_ajax_nopriv_check_order_payment_status', 'check_order_payment_status');
 
 
-    // Modify the payment method title for the order on the Thank You page.
-    function digiwoo_display_qr_on_thankyou($title, $order) {
-        if ($order->get_payment_method() == 'pix_qrcode') {
-            $pix_payload = get_post_meta($order->get_id(), 'digiwoo_pix_generate_payload', true);
-            
-            if (!empty($pix_payload)) {
-                $qr_code_html = '<div id="digiwoo-qrcode-thankyou"></div>';
-                
-                // Append the QR code container to the payment method title
-                $title .= $qr_code_html;
-            }
+    add_filter('woocommerce_order_get_payment_method_title', 'display_qrcode_below_payment_title', 10, 2);
+
+    function display_qrcode_below_payment_title($title, $order) {
+        $payload = get_post_meta($order->get_id(), 'digiwoo_pix_generate_payload', true);
+
+        if (!$payload) {
+            return $title; // kembali ke judul asli jika tidak ada payload
         }
-        
-        return $title;
+
+        // Tambahkan div untuk menampilkan QR Code
+        $qrcode_html = '<div id="qrcode"></div>
+                        <script>
+                            var qrcode = new QRCode(document.getElementById("qrcode"), {
+                                text: "' . esc_js($payload) . '",
+                                width: 128,
+                                height: 128
+                            });
+                        </script>';
+
+        return $title . $qrcode_html;
     }
-    add_filter('woocommerce_order_get_payment_method_title', 'digiwoo_display_qr_on_thankyou', 10, 2);
 
-    // Generate the QR code if on the Thank You page
-    function digiwoo_generate_qr_on_thankyou() {
-        if (!is_wc_endpoint_url('order-received')) {
-            return;
-        }
-
-        $order_id = absint($GLOBALS['wp']->query_vars['order-received']);
-        $order = wc_get_order($order_id);
-
-        if ($order->get_payment_method() == 'pix_qrcode') {
-            $pix_payload = get_post_meta($order_id, 'digiwoo_pix_generate_payload', true);
-
-            if (!empty($pix_payload)) {
-                ?>
-                <script>
-                    var qrcode = new QRCode(document.getElementById('digiwoo-qrcode-thankyou'), {
-                        text: '<?php echo $pix_payload; ?>',
-                        width: 300,
-                        height: 300
-                    });
-                </script>
-                <?php
-            }
-        }
-    }
-    add_action('wp_footer', 'digiwoo_generate_qr_on_thankyou');
 
 }
