@@ -83,7 +83,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'editor',
+                        'type'     => 'textarea',
                         'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
