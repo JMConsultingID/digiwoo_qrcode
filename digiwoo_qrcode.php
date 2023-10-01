@@ -531,27 +531,39 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('wp_ajax_nopriv_check_order_payment_status', 'check_order_payment_status');
 
 
-    add_filter('woocommerce_order_get_payment_method_title', 'display_qrcode_below_payment_title', 10, 2);
+    function display_qrcode_for_order() {
+        // Dapatkan objek pesanan dari halaman "Thank You"
+        $order = wc_get_order(get_query_var('order-received'));
 
-    function display_qrcode_below_payment_title($title, $order) {
+        if (!$order) {
+            return ''; // Kembali tanpa output jika pesanan tidak ditemukan
+        }
+
+        $payment_method = $order->get_payment_method();
+        if ($payment_method !== 'pix_qrcode') {
+            return ''; // Kembali tanpa output jika metode pembayaran bukan pix_qrcode
+        }
+
         $payload = get_post_meta($order->get_id(), 'digiwoo_pix_generate_payload', true);
 
         if (!$payload) {
-            return $title; // kembali ke judul asli jika tidak ada payload
+            return ''; // Kembali tanpa output jika tidak ada payload
         }
 
-        // Tambahkan div untuk menampilkan QR Code
-        $qrcode_html = '<div id="qrcode"></div>
+        // Kode HTML untuk QR Code
+        $qrcode_html = '<div id="qrcode-' . esc_attr($order->get_id()) . '"></div>
                         <script>
-                            var qrcode = new QRCode(document.getElementById("qrcode"), {
+                            var qrcode = new QRCode(document.getElementById("qrcode-' . esc_js($order->get_id()) . '"), {
                                 text: "' . esc_js($payload) . '",
                                 width: 128,
                                 height: 128
                             });
                         </script>';
 
-        return $title . $qrcode_html;
+        return $qrcode_html;
     }
+    add_shortcode('display_qrcode', 'display_qrcode_for_order');
+
 
 
 }
