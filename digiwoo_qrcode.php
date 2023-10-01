@@ -83,6 +83,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
+                        'type'     => 'textarea',
                         'callback' => 'render_custom_pix_qrcode_instruction_field',
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
@@ -619,11 +620,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-    $option_name = 'pix_qrcode_instructions';
-    $instructions = get_option($option_name);
-
-    echo '<textarea id="' . $option_name . '" name="' . $option_name . '" rows="5" cols="40">' . esc_attr($instructions) . '</textarea>';
+    $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
+    wp_editor('', 'pix_qrcode_instructions', array('textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions'));
 }
+
 
 
 }
