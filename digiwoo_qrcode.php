@@ -600,4 +600,19 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
+    add_filter( 'woocommerce_settings_api_form_fields_pix_qrcode', 'add_wysiwyg_to_pix_qrcode_settings' );
+
+    function add_wysiwyg_to_pix_qrcode_settings( $fields ) {
+        $fields['pix_qrcode_instructions'] = array(
+            'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
+            'type'        => 'wysiwyg',
+            'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
+            'default'     => __( 'Your default instructions...', 'your-text-domain' ),
+            'css'         => 'min-width:400px; height:200px;',
+        );
+
+        return $fields;
+    }
+
+
 }
