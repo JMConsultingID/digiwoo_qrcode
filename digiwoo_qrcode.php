@@ -375,7 +375,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     });
                         return new Promise((resolve, reject) => {
                             let attempts = 0;
-                            const maxAttempts = 3;
+                            const maxAttempts = 2;
 
                             function checkPaymentStatus() {
                                 if (attempts >= maxAttempts) {
