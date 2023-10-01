@@ -573,7 +573,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                             var centerX = canvas.width / 2;
                             var centerY = canvas.height / 2;
-                            ctx.font = "25px Arial";
+                            ctx.font = "15px Arial";
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillStyle = "white";
