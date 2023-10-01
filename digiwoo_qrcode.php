@@ -81,11 +81,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
-                    'pix_instructions' => array(
-                        'title'    => __( 'PIX Payment Instructions', 'your-text-domain' ),
-                        'type'     => 'textarea',
-                        'description' => __( 'Instructions for Completing Your Payment Using PIX QR Code:', 'your-text-domain' ),
-                        'desc_tip' => true,
+                    'pix_qrcode_instructions' => array(
+                        'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
+                        'type'        => 'textarea',
+                        'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
+                        'default'     => __( "Your default instructions...", 'your-text-domain' ),
+                        'css'         => 'min-width:400px; height:200px;',
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
@@ -327,7 +328,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
-        $pix_instructions = get_option('woocommerce_pix_qrcode_settings_pix_instructions');
+        $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
 
         if ($pix_payload) {
             ?>
@@ -369,7 +370,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 <img src="${canvas.toDataURL()}" alt="QR Code" style="width: 300px; height: 300px;">
                             </div>
                             <div style="margin-top: 20px; text-align: left;">
-                                 <?php echo $pix_instructions; ?>                                
+                                <?php echo nl2br(esc_js($pix_instructions)); ?>
                             </div>
                         `,
                         showCloseButton: false,
@@ -598,15 +599,5 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         return $qrcode_html;
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
-
-    add_action('woocommerce_admin_field_textarea', 'digiwoo_admin_field_wysiwyg', 10, 1);
-
-    function digiwoo_admin_field_wysiwyg($value) {
-        if (isset($value['id']) && 'woocommerce_pix_qrcode_settings[pix_instructions]' == $value['id']) {
-            wp_editor(get_option('woocommerce_pix_qrcode_settings_pix_instructions'), 'woocommerce_pix_qrcode_settings_pix_instructions');
-        } else {
-            woocommerce_admin_fields(array($value));
-        }
-    }
 
 }
