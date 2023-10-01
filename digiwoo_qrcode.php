@@ -626,8 +626,8 @@ function enqueue_tinymce() {
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-    $instructions = get_option('pix_qrcode_instructions');
-    wp_editor($instructions, 'pix_qrcode_instructions', array('textarea_name' => 'pix_qrcode_instructions'));
+    $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
+    wp_editor($pix_instructions, 'pix_qrcode_instructions', array('textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions'));
 }
 
 
