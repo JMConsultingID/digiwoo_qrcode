@@ -614,5 +614,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         return $fields;
     }
 
+    add_action( 'woocommerce_admin_field_wysiwyg', 'output_wysiwyg_field' );
+
+    function output_wysiwyg_field( $field ) {
+        wp_editor( htmlspecialchars_decode( $field['default'] ), $field['id'], array( 'textarea_name' => $field['id'] ) );
+    }
+
+
 
 }
