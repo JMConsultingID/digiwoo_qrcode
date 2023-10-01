@@ -81,12 +81,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
-                    'pix_qrcode_instructions' => array(
-                        'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'textarea',
-                        'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
-                        'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
-                        'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
+                    'pix_qrcode_shortcode' => array(
+                        'title'       => __('PIX QRCode Shortcode', 'digiwoo_qrcode'),
+                        'type'        => 'text',
+                        'description' => __('PIX QRCode Shortcode to display QRCode on Thank You Page.', 'digiwoo_qrcode'),
+                        'default'     => '[display_qrcode]',
+                        'desc_tip'    => true,
+                        'custom_attributes' => array(
+                            'readonly' => 'readonly'
+                        )
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
