@@ -346,8 +346,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         height: 300
                     });
 
-                    let order_id = '<?php echo $order_id; ?>';
-
                     var canvas = qrcode._el.querySelector('canvas');
                     var ctx = canvas.getContext('2d');
 
