@@ -83,7 +83,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'textarea',
                         'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
@@ -619,15 +618,5 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             'tinymce' => true
         ));
     }
-
-
-    function custom_plugin_admin_scripts() {
-        wp_enqueue_media();   // if you want to use the media uploader
-        wp_enqueue_script('jquery');
-        wp_enqueue_script('wp-tinymce');
-        wp_enqueue_script('editor');
-    }
-    add_action('admin_enqueue_scripts', 'custom_plugin_admin_scripts');
-
 
 }
