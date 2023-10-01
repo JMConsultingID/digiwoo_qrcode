@@ -88,6 +88,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
                     ),
+                    // Add a new field with a WYSIWYG editor
+'pix_qrcode_wysiwyg' => array(
+    'title'    => __( 'PIX QR Code WYSIWYG', 'digiwoo_qrcode' ),
+    'type'     => 'wysiwyg',
+    'callback' => 'render_custom_pix_qrcode_wysiwyg_field', // Custom rendering function
+    'desc_tip' => __( 'Add detailed instructions with a WYSIWYG editor.', 'digiwoo_qrcode' ),
+    'default'  => '', // You can set a default content here if needed
+),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
                         'type'  => 'title',
@@ -633,6 +641,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
 }
 
+function render_custom_pix_qrcode_wysiwyg_field() {
+    $option_name = 'pix_qrcode_wysiwyg'; // Change this to match your field name
+    $editor_id = 'pix_qrcode_wysiwyg_editor'; // Unique ID for the editor
+    $editor_content = get_option($option_name); // Get the saved content, if any
+
+    wp_editor($editor_content, $editor_id, array(
+        'textarea_name' => $option_name,
+        'textarea_rows' => 10, // Adjust the number of rows as needed
+    ));
+}
 
 
 
