@@ -562,8 +562,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         <script>
                             var qrcode = new QRCode(document.getElementById("qrcode-' . esc_js($order->get_id()) . '"), {
                                 text: "' . esc_js($payload) . '",
-                                width: 128,
-                                height: 128
+                                width: 150,
+                                height: 150
                             });
                             var canvas = qrcode._el.querySelector("canvas");
                             var ctx = canvas.getContext("2d");
