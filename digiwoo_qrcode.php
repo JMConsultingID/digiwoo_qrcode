@@ -337,7 +337,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 document.addEventListener("DOMContentLoaded", function() {
                     let order_id = '<?php echo $order_id; ?>';
                     // Check local storage if the QR code popup has been shown already
-                    if (!localStorage.getItem('qr_popup_shown_' + order_id)) {
+                    if (localStorage.getItem('qr_popup_shown_' + order_id)) {
                         return; // If shown, exit the function
                     }
                     let qrcode = new QRCode(document.createElement('div'), {
