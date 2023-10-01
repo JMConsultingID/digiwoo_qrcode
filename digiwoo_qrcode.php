@@ -81,8 +81,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
+                    'pix_qrcode_instructions' => array(
+                        'title'       => __('PIX QR Code Instructions', 'digiwoo_qrcode'),
+                        'type'        => 'wysiwyg_editor',
+                        'description' => __('Enter the instructions for completing the payment using the PIX QR Code.', 'digiwoo_qrcode'),
+                        'desc_tip'    => true,
+                    ),
                     'title_first' => array(
-                        'title' => __('Auo Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
+                        'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
                         'type'  => 'title',
                         'description' => __('if enable, it will automatically convert currency to brazil via openexchangerates.org API (see API price details: <a href="https://openexchangerates.org/signup" target="_blank">see detail pricing</a> Free Plan provides hourly updates (with base currency USD) and up to 1,000 requests/month.)', 'digiwoo_qrcode'),
                     ),
@@ -321,6 +327,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
+        $options = get_option('woocommerce_pix_qrcode_settings');
+        $pix_instructions = isset($options['pix_qrcode_instructions']) ? wpautop($options['pix_qrcode_instructions']) : '';
 
         if ($pix_payload) {
             ?>
@@ -362,14 +370,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 <img src="${canvas.toDataURL()}" alt="QR Code" style="width: 300px; height: 300px;">
                             </div>
                             <div style="margin-top: 20px; text-align: left;">
-                                <strong>Instructions for Completing Your Payment Using PIX QR Code:</strong>
-                                <ol>
-                                    <li><b>Scan the QR Code:</b> Use your banking app or a QR code reader to scan the QR code displayed above.</li>
-                                    <li><b>Confirm the Payment Details:</b> Ensure that the amount and recipient details match your order.</li>
-                                    <li><b>Authorize the Payment:</b> Depending on your app, you may need to enter a password, fingerprint, or another form of verification to confirm the payment.</li>
-                                    <li><b>Wait for Confirmation:</b> After you've authorized the payment, please wait a moment. The page will automatically update once your payment is confirmed.</li>
-                                    <li><b>Save the Receipt:</b> It's a good idea to save a screenshot or keep a record of the transaction in your banking app.</li>
-                                </ol>
+                                 ${pix_instructions}                                
                             </div>
                         `,
                         showCloseButton: false,
@@ -599,6 +600,18 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-
+    function digiwoo_custom_settings_field($value) {
+        wp_editor(
+            esc_textarea($value['value']),
+            esc_attr($value['id']),
+            array(
+                'textarea_name' => esc_attr($value['id']),
+                'media_buttons' => false, // you can set this to true if you want to allow media uploads
+                'wpautop' => true,
+                'textarea_rows' => 10
+            )
+        );
+    }
+    add_action('woocommerce_admin_field_wysiwyg_editor', 'digiwoo_custom_settings_field');
 
 }
