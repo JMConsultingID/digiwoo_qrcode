@@ -93,11 +93,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __('Select Instructions Page', 'digiwoo_qrcode'),
-                        'desc'     => __('This selects the page for PIX QR Code instructions.', 'digiwoo_qrcode'),
-                        'id'       => 'woocommerce_pix_qrcode_instructions_page',
                         'type'     => 'select',
-                        'options'  => digiwoo_get_intruction_pages(),
-                        'desc_tip' => true,
+                        'options' => $this->get_pages(),
+                        'default' => '',
+                        'description' => __('PIX QRCode Shortcode to display QRCode on Thank You Page.', 'digiwoo_qrcode'),
+                        'desc_tip'    => true,                        
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
@@ -256,6 +256,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 wc_add_notice(__('Error generating PIX QRCode. Please try again.', 'digiwoo_qrcode'), 'error');
                 update_post_meta($order_id, ' all_digiwoo_pix_whole_error_generate_response', wp_json_encode($body));
                 return;
+            }
+
+            private function get_pages() {
+                $pages = get_pages();
+                $options = array();
+                if ($pages) {
+                    foreach ($pages as $page) {
+                        $options[$page->ID] = $page->post_title;
+                    }
+                }
+                return $options;
             }
 
             public function check_for_ipn_response() {
@@ -637,20 +648,5 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $post = get_post($post_id);
         return $post ? $post->post_title : '';
     }
-
-    function digiwoo_get_intruction_pages() {
-        $pages = get_pages();
-        $page_options = array();
-
-        if (!empty($pages)) {
-            foreach ($pages as $page) {
-                $page_options[$page->ID] = $page->post_title;
-            }
-        }
-
-        return $page_options;
-    }
-
-
 
 }
