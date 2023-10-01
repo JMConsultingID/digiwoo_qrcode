@@ -83,7 +83,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
-                        'type'     => 'editor',
+                        'type'     => 'textarea',
                         'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
@@ -620,18 +620,19 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-        $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
+    $content = get_option('woocommerce_pix_qrcode_pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
 
-        $editor_id = 'woocommerce_pix_qrcode_pix_qrcode_instructions';
-        $settings = array(
-            'textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions',
-            'editor_class' => 'wide-input', // Sesuaikan kelas editor
-            'textarea_rows' => 3, // Sesuaikan jumlah baris textarea
-        );
+    echo '<textarea rows="3" cols="20" class="input-text wide-input " type="textarea" name="woocommerce_pix_qrcode_pix_qrcode_instructions" id="woocommerce_pix_qrcode_pix_qrcode_instructions" style="" placeholder=""></textarea>';
 
-        wp_editor($content, $editor_id, $settings);
-        echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
-    }
+    echo '<script>
+        jQuery(document).ready(function($){
+            $("#woocommerce_pix_qrcode_pix_qrcode_instructions").wpEditor();
+        });
+    </script>';
+
+    echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
+}
+
 
 
 
