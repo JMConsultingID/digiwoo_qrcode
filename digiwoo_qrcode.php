@@ -335,8 +335,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             ?>
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
+                    let order_id = '<?php echo $order_id; ?>';
                     // Check local storage if the QR code popup has been shown already
-                    if (localStorage.getItem('qr_popup_shown') === 'true') {
+                    if (!localStorage.getItem('qr_popup_shown_' + order_id)) {
                         return; // If shown, exit the function
                     }
                     let qrcode = new QRCode(document.createElement('div'), {
@@ -344,6 +345,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         width: 300,
                         height: 300
                     });
+
+                    let order_id = '<?php echo $order_id; ?>';
 
                     var canvas = qrcode._el.querySelector('canvas');
                     var ctx = canvas.getContext('2d');
@@ -407,7 +410,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                         confirmButtonText: 'Close'
                                     }).then(() => {
                                         // This will be executed after the close button is clicked
-                                        localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                                        localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
                                         location.reload(); // Reload the page
                                     });
                                     return;
@@ -448,7 +451,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             confirmButtonText: 'Close'
                         }).then(() => {
                             // This will be executed after the close button is clicked
-                            localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                            localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
                             location.reload(); // Reload the page
                         });
                     } else if (result.isDismissed) {
@@ -459,7 +462,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             confirmButtonText: 'Close'
                         }).then(() => {
                             // This will be executed after the close button is clicked
-                            localStorage.setItem('qr_popup_shown', 'true'); // Set a flag in local storage
+                            localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
                             location.reload(); // Reload the page
                         });
                     }
