@@ -558,9 +558,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         <div style="display: flex; justify-content: center;">
                         
                         <div id="qrcode-' . esc_attr($order->get_id()) . '" class="pix-qr-code-display-qr"></div>
-                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; color: white; font-weight: bold;">
-                                ' . esc_html($currency) . ' ' . esc_html($amount) . '
-                            </div>
                         </div>
                         <script>
                             var qrcode = new QRCode(document.getElementById("qrcode-' . esc_js($order->get_id()) . '"), {
