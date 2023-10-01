@@ -611,13 +611,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-        $option_value = get_option('pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
-        wp_editor($option_value, 'pix_qrcode_instructions', array(
-            'media_buttons' => true,
-            'textarea_name' => 'pix_qrcode_instructions',
-            'textarea_rows' => 10,
-            'tinymce' => true
-        ));
+        $value = get_option('pix_qrcode_instructions', __( "Your default instructions...", 'digiwoo_qrcode' ));
+        echo '<textarea id="pix_qrcode_instructions" name="pix_qrcode_instructions" rows="5" cols="50">' . esc_textarea($value) . '</textarea>';
+        wp_editor($value, 'pix_qrcode_instructions_editor'); // Menampilkan tinymce
     }
+
 
 }
