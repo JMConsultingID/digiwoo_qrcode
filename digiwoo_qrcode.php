@@ -91,6 +91,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
+                    'pix_qrcode_instructions' => array(
+                        'title'    => __('Select Instructions Page', 'digiwoo_qrcode'),
+                        'desc'     => __('This selects the page for PIX QR Code instructions.', 'digiwoo_qrcode'),
+                        'id'       => 'woocommerce_pix_qrcode_instructions_page',
+                        'type'     => 'select',
+                        'options'  => digiwoo_get_intruction_pages(),
+                        'desc_tip' => true,
+                    ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
                         'type'  => 'title',
@@ -331,8 +339,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
-        $pix_instructions_title = addslashes(digiwoo_get_instructions_title_by_post_id(306));
-        $pix_instructions_content = addslashes(digiwoo_get_instructions_content_by_post_id(306));
+        $options = get_option('woocommerce_pix_qrcode_settings');
+        $intruction_page_id = isset($options['pix_qrcode_instructions']) ? $options['pix_qrcode_instructions'] : '';
+        $pix_instructions_title = addslashes(digiwoo_get_instructions_title_by_post_id($intruction_page_id));
+        $pix_instructions_content = addslashes(digiwoo_get_instructions_content_by_post_id($intruction_page_id));
 
         if ($pix_payload) {
             ?>
@@ -627,6 +637,20 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $post = get_post($post_id);
         return $post ? $post->post_title : '';
     }
+
+    function digiwoo_get_intruction_pages() {
+        $pages = get_pages();
+        $page_options = array();
+
+        if (!empty($pages)) {
+            foreach ($pages as $page) {
+                $page_options[$page->ID] = $page->post_title;
+            }
+        }
+
+        return $page_options;
+    }
+
 
 
 }
