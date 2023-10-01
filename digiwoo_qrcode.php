@@ -83,7 +83,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
-                        'type'        => 'wysiwyg',
+                        'type'        => 'textarea',
                         'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
                         'default'     => __( "Your default instructions...", 'your-text-domain' ),
                     ),
