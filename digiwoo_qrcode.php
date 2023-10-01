@@ -551,8 +551,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
 
         // Kode HTML untuk QR Code
-        $qrcode_html = '<div style="display: flex; justify-content: center;">
-                        <h2 class="pix-qr-code-display-title" style="text-align:center;">Your QR Code</h2>
+        $qrcode_html = '<h3 class="pix-qr-code-display-title" style="text-align:center;">Your QR Code</h3>
+                        <div style="display: flex; justify-content: center;">                        
                         <div id="qrcode-' . esc_attr($order->get_id()) . '" class="pix-qr-code-display-qr"></div>
                         </div>
                         <script>
