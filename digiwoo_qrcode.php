@@ -476,7 +476,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_action('woocommerce_thankyou', 'digiwoo_qrcode_thank_you_js');
 
-
+    function custom_plugin_admin_scripts() {
+        wp_enqueue_media();   // if you want to use the media uploader
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('wp-tinymce');
+        wp_enqueue_script('editor');
+    }
+    
+    add_action('admin_enqueue_scripts', 'custom_plugin_admin_scripts');
     function convert_amount($amount, $from_currency, $to_currency) {
         $options = get_option('woocommerce_pix_qrcode_settings');
         $log_data = digiwoo_get_logger();
