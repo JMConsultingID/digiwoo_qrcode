@@ -315,9 +315,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
 
     function digiwoo_qrcode_thank_you_js($order_id) {
-        if (!$order_id) return;
-        $target_currency = 'BRL';
+        if (!$order_id) return;        
         $order = wc_get_order($order_id);
+        $target_currency = 'BRL';
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
@@ -533,7 +533,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
     function display_qrcode_for_order() {
         // Dapatkan objek pesanan dari halaman "Thank You"
-        $order = wc_get_order(get_query_var('order-received'));
+        $order = wc_get_order(get_query_var('order-received'));       
 
         if (!$order) {
             return ''; // Kembali tanpa output jika pesanan tidak ditemukan
@@ -544,7 +544,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             return ''; // Kembali tanpa output jika metode pembayaran bukan pix_qrcode
         }
 
+        $target_currency = 'BRL';
+        $currency = $target_currency;
         $payload = get_post_meta($order->get_id(), 'digiwoo_pix_generate_payload', true);
+        $amount = get_post_meta($order->get_id(), 'digiwoo_pix_generate_amount', true);
 
         if (!$payload) {
             return ''; // Kembali tanpa output jika tidak ada payload
@@ -555,12 +558,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         <div style="display: flex; justify-content: center;">
                         
                         <div id="qrcode-' . esc_attr($order->get_id()) . '" class="pix-qr-code-display-qr"></div>
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; color: white; font-weight: bold;">
+                                ' . esc_html($currency) . ' ' . esc_html($amount) . '
+                            </div>
                         </div>
                         <script>
                             var qrcode = new QRCode(document.getElementById("qrcode-' . esc_js($order->get_id()) . '"), {
                                 text: "' . esc_js($payload) . '",
                                 width: 128,
-                                height: 128
+                                height: 128,
+                                colorDark: "#000000",  // Warna QR Code
+                                colorLight: "#ffffff" // Warna background
                             });
                         </script>';
 
