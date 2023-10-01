@@ -620,22 +620,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-        $value = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
-        $editor_id = 'woocommerce_pix_qrcode_pix_qrcode_instructions';
+    $value = get_option('pix_qrcode_instructions');
+    $editor_id = 'pix_qrcode_instructions';
 
-        wp_editor(
-            $value,
-            $editor_id,
-            array(
-                'textarea_name' => 'pix_qrcode_instructions',
-                'media_buttons' => false, // Nonaktifkan tombol media jika tidak diperlukan
-                'textarea_rows' => 10, // Jumlah baris editor
-                'teeny'         => true, // Tampilkan versi editor "teensy"
-            )
-        );
+    echo '<textarea id="' . $editor_id . '" name="pix_qrcode_instructions" rows="10">' . esc_textarea($value) . '</textarea>';
 
-        echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
-    }
+    wp_editor('', $editor_id, array(
+        'media_buttons' => false,
+        'textarea_name' => $editor_id,
+        'teeny'         => true,
+        'textarea_rows' => 10,
+    ));
+
+    echo '<p class="description">' . __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ) . '</p>';
+}
+
 
 
 
