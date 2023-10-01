@@ -81,11 +81,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             'readonly' => 'readonly'
                         )
                     ),
-                    'pix_qrcode_instructions' => array(
-                        'title'       => __('PIX QR Code Instructions', 'digiwoo_qrcode'),
-                        'type'        => 'wysiwyg_editor',
-                        'description' => __('Enter the instructions for completing the payment using the PIX QR Code.', 'digiwoo_qrcode'),
-                        'desc_tip'    => true,
+                    'pix_instructions' => array(
+                        'title'    => __( 'PIX Payment Instructions', 'your-text-domain' ),
+                        'type'     => 'textarea',
+                        'description' => __( 'Instructions for Completing Your Payment Using PIX QR Code:', 'your-text-domain' ),
+                        'desc_tip' => true,
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
@@ -327,8 +327,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
         $currency = $target_currency;
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
-        $options = get_option('woocommerce_pix_qrcode_settings');
-        $pix_instructions = isset($options['pix_qrcode_instructions']) ? wpautop($options['pix_qrcode_instructions']) : '';
+        $pix_instructions = get_option('woocommerce_pix_qrcode_settings_pix_instructions');
 
         if ($pix_payload) {
             ?>
@@ -600,18 +599,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-    function digiwoo_custom_settings_field($value) {
-        wp_editor(
-            esc_textarea($value['value']),
-            esc_attr($value['id']),
-            array(
-                'textarea_name' => esc_attr($value['id']),
-                'media_buttons' => false, // you can set this to true if you want to allow media uploads
-                'wpautop' => true,
-                'textarea_rows' => 10
-            )
-        );
+    add_action('woocommerce_admin_field_textarea', 'digiwoo_admin_field_wysiwyg', 10, 1);
+
+    function digiwoo_admin_field_wysiwyg($value) {
+        if (isset($value['id']) && 'woocommerce_pix_qrcode_settings[pix_instructions]' == $value['id']) {
+            wp_editor(get_option('woocommerce_pix_qrcode_settings_pix_instructions'), 'woocommerce_pix_qrcode_settings_pix_instructions');
+        } else {
+            woocommerce_admin_fields(array($value));
+        }
     }
-    add_action('woocommerce_admin_field_wysiwyg_editor', 'digiwoo_custom_settings_field');
 
 }
