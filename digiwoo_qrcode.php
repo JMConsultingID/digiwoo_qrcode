@@ -84,7 +84,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     'pix_qrcode_instructions' => array(
                         'title'    => __( 'PIX QR Code Instructions', 'digiwoo_qrcode' ),
                         'type'     => 'textarea',
-                        'callback' => 'render_custom_pix_qrcode_instruction_field',
+                        'callback' => 'render_custom_pix_qrcode_instruction_field', // Our custom rendering function
                         'desc_tip' => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode' ),
                         'default'  => __( "Your default instructions...", 'digiwoo_qrcode' ),
                     ),
@@ -620,9 +620,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
     function render_custom_pix_qrcode_instruction_field() {
-    $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
-    wp_editor('', 'pix_qrcode_instructions', array('textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions'));
-}
+        $value = get_option('pix_qrcode_instructions'); // Mengambil nilai dari pengaturan saat ini
+
+        // Menampilkan wp_editor dengan ID unik
+        $editor_id = 'pix_qrcode_instructions_editor';
+        $settings = array(
+            'media_buttons' => false, // Untuk menyembunyikan tombol media
+            'textarea_name' => 'pix_qrcode_instructions', // Nama field yang digunakan saat menyimpan nilai
+        );
+
+        wp_editor($value, $editor_id, $settings);
+        
+        // Deskripsi atau informasi tambahan
+        echo '<p class="description">' . esc_html__('Instructions for users on how to make a payment using the PIX QR code.', 'digiwoo_qrcode') . '</p>';
+    }
+
 
 
 
