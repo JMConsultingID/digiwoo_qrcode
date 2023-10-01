@@ -621,7 +621,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
     function render_custom_pix_qrcode_instruction_field() {
     $pix_instructions = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
-    wp_editor($pix_instructions, 'pix_qrcode_instructions', array('textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions'));
+    wp_editor('', 'pix_qrcode_instructions', array('textarea_name' => 'woocommerce_pix_qrcode_pix_qrcode_instructions'));
 }
 
 
