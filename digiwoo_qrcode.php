@@ -83,10 +83,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     ),
                     'pix_qrcode_instructions' => array(
                         'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
-                        'type'        => 'textarea',
+                        'type'        => 'wysiwyg',
                         'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
                         'default'     => __( "Your default instructions...", 'your-text-domain' ),
-                        'css'         => 'min-width:400px; height:200px;',
                     ),
                     'title_first' => array(
                         'title' => __('Auto Conversion Currencies Using openexchangerates.org', 'digiwoo_qrcode'),
@@ -600,16 +599,32 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-    add_action( 'woocommerce_admin_field_textarea', 'custom_override_for_pix_qrcode_field', 10, 1 );
+    function render_wysiwyg_for_pix_qrcode_instructions($field) {
+        $value = get_option('woocommerce_pix_qrcode_settings')['pix_qrcode_instructions'];
+        wp_editor( htmlspecialchars_decode( $value ), 'woocommerce_pix_qrcode_settings[pix_qrcode_instructions]', array('textarea_name' => 'woocommerce_pix_qrcode_settings[pix_qrcode_instructions]') );
+    }
 
-    function custom_override_for_pix_qrcode_field( $field ) {
-        if( isset($field['id']) && 'pix_qrcode_instructions' == $field['id'] ) {
-            $value = get_option( $field['id'] );
-            wp_editor( $value, $field['id'], array( 'textarea_name' => $field['id'] ) );
-        } else {
-            woocommerce_wp_textarea_input( $field ); // default handling
+    add_action('woocommerce_admin_field_wysiwyg', 'render_wysiwyg_for_pix_qrcode_instructions');
+
+    function load_wysiwyg_scripts( $hook ) {
+        if ( $hook == 'woocommerce_page_wc-settings' ) {
+            wp_enqueue_script( 'jquery' );
+            wp_enqueue_script( 'jquery-ui-core' );
+            wp_enqueue_script( 'jquery-ui-widget' );
+            wp_enqueue_script( 'jquery-ui-mouse' );
+            wp_enqueue_script( 'jquery-ui-sortable' );
+            wp_enqueue_script( 'jquery-ui-draggable' );
+            wp_enqueue_script( 'jquery-ui-droppable' );
+            wp_enqueue_script( 'jquery-ui-resizable' );
+            wp_enqueue_script( 'jquery-ui-button' );
+            wp_enqueue_script( 'jquery-ui-position' );
+            wp_enqueue_script( 'wp-tinymce' );
+            wp_enqueue_script( 'editor' );
+            wp_enqueue_script( 'quicktags' );
         }
     }
+
+    add_action( 'admin_enqueue_scripts', 'load_wysiwyg_scripts' );
 
 
 }
