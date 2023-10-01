@@ -357,7 +357,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
                     Swal.fire({
                         title: 'Pix QR Code',
-                        html: canvas,
+                        html: `
+                            <div>
+                                <img src="${canvas.toDataURL()}" alt="QR Code" style="width: 300px; height: 300px;">
+                            </div>
+                            <div style="margin-top: 20px; text-align: left;">
+                                <strong>Instructions for Completing Your Payment Using PIX QR Code:</strong>
+                                <ol>
+                                    <li><b>Scan the QR Code:</b> Use your banking app or a QR code reader to scan the QR code displayed above.</li>
+                                    <li><b>Confirm the Payment Details:</b> Ensure that the amount and recipient details match your order.</li>
+                                    <li><b>Authorize the Payment:</b> Depending on your app, you may need to enter a password, fingerprint, or another form of verification to confirm the payment.</li>
+                                    <li><b>Wait for Confirmation:</b> After you've authorized the payment, please wait a moment. The page will automatically update once your payment is confirmed.</li>
+                                    <li><b>Save the Receipt:</b> It's a good idea to save a screenshot or keep a record of the transaction in your banking app.</li>
+                                </ol>
+                            </div>
+                        `,
                         showCloseButton: false,
                         allowOutsideClick: false,
                         confirmButtonText: 'Proceed to Payment',
