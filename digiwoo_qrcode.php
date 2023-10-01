@@ -369,7 +369,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 <img src="${canvas.toDataURL()}" alt="QR Code" style="width: 300px; height: 300px;">
                             </div>
                             <div style="margin-top: 20px; text-align: left;">
-                                 ${pix_instructions}                                
+                                 <?php echo $pix_instructions; ?>                                
                             </div>
                         `,
                         showCloseButton: false,
