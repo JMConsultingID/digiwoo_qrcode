@@ -566,10 +566,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             var qrcode = new QRCode(document.getElementById("qrcode-' . esc_js($order->get_id()) . '"), {
                                 text: "' . esc_js($payload) . '",
                                 width: 128,
-                                height: 128,
-                                colorDark: "#000000",  // Warna QR Code
-                                colorLight: "#ffffff" // Warna background
+                                height: 128
                             });
+                            var canvas = qrcode._el.querySelector("canvas");
+                            var ctx = canvas.getContext("2d");
+
+                            var centerX = canvas.width / 2;
+                            var centerY = canvas.height / 2;
+                            ctx.font = "25px Arial";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillStyle = "white";
+
+                            var textWidth = ctx.measureText("' . $currency . '" + " " + "' . $amount . '").width;
+                            ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);
+                            ctx.fillStyle = "black";
+                            ctx.fillText("' . $currency . '" + " " + "' . $amount . '", centerX, centerY);
                         </script>';
 
         return $qrcode_html;
