@@ -600,26 +600,16 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_shortcode('display_qrcode', 'display_qrcode_for_order');
 
-    add_filter( 'woocommerce_settings_api_form_fields_pix_qrcode', 'add_wysiwyg_to_pix_qrcode_settings' );
+    add_action( 'woocommerce_admin_field_textarea', 'custom_override_for_pix_qrcode_field', 10, 1 );
 
-    function add_wysiwyg_to_pix_qrcode_settings( $fields ) {
-        $fields['pix_qrcode_instructions'] = array(
-            'title'       => __( 'PIX QR Code Instructions', 'your-text-domain' ),
-            'type'        => 'wysiwyg',
-            'desc_tip'    => __( 'Instructions for users on how to make a payment using the PIX QR code.', 'your-text-domain' ),
-            'default'     => __( 'Your default instructions...', 'your-text-domain' ),
-            'css'         => 'min-width:400px; height:200px;',
-        );
-
-        return $fields;
+    function custom_override_for_pix_qrcode_field( $field ) {
+        if( isset($field['id']) && 'pix_qrcode_instructions' == $field['id'] ) {
+            $value = get_option( $field['id'] );
+            wp_editor( $value, $field['id'], array( 'textarea_name' => $field['id'] ) );
+        } else {
+            woocommerce_wp_textarea_input( $field ); // default handling
+        }
     }
-
-    add_action( 'woocommerce_admin_field_wysiwyg', 'output_wysiwyg_field' );
-
-    function output_wysiwyg_field( $field ) {
-        wp_editor( htmlspecialchars_decode( $field['default'] ), $field['id'], array( 'textarea_name' => $field['id'] ) );
-    }
-
 
 
 }
