@@ -343,8 +343,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     }
     add_action('wp_enqueue_scripts', 'digiwoo_enqueue_scripts');
 
-    function digiwoo_qrcode_thank_you_js($order_id) {
-        if (!$order_id) return;        
+    function digiwoo_qrcode_thank_you_enqueue_script($order_id) {
+        if (!$order_id) return;
+
+        wp_enqueue_script('digiwoo-thank-you', plugin_dir_url(__FILE__) . 'js/digiwoo-thank-you.js', array('jquery', 'sweetalert2'), null, true);
+
         $order = wc_get_order($order_id);
         $target_currency = 'BRL';
         $pix_payload = $order->get_meta('digiwoo_pix_generate_payload');
@@ -352,149 +355,21 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $amount = $order->get_meta('digiwoo_pix_generate_amount');
         $options = get_option('woocommerce_pix_qrcode_settings');
         $intruction_page_id = isset($options['pix_qrcode_instructions']) ? $options['pix_qrcode_instructions'] : '';
-        $pix_instructions_title = addslashes(digiwoo_get_instructions_title_by_post_id($intruction_page_id));
         $pix_instructions_content = addslashes(digiwoo_get_instructions_content_by_post_id($intruction_page_id));
 
-        if ($pix_payload) {
-            ?>
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    let order_id = '<?php echo $order_id; ?>';
-                    // Check local storage if the QR code popup has been shown already
-                    if (localStorage.getItem('qr_popup_shown_' + order_id)) {
-                        return; // If shown, exit the function
-                    }
-                    let qrcode = new QRCode(document.createElement('div'), {
-                        text: '<?php echo $pix_payload; ?>',
-                        width: 300,
-                        height: 300
-                    });
+        $params = array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'order_id' => $order_id,
+            'pix_payload' => $pix_payload,
+            'currency' => $currency,
+            'amount' => $amount,
+            'pix_instructions_content' => $pix_instructions_content,
+        );
 
-                    var canvas = qrcode._el.querySelector('canvas');
-                    var ctx = canvas.getContext('2d');
-
-                    var centerX = canvas.width / 2;
-                    var centerY = canvas.height / 2;
-                    ctx.font = "25px Arial";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "white";
-
-                    var textWidth = ctx.measureText('<?php echo $currency; ?>' + " " + '<?php echo $amount; ?>').width;
-                    ctx.fillRect(centerX - (textWidth / 2) - 10, centerY - 18, textWidth + 20, 36);
-                    ctx.fillStyle = "black";
-                    ctx.fillText('<?php echo $currency; ?>' + " " + '<?php echo $amount; ?>', centerX, centerY);
-
-                    setTimeout(() => {
-                        canvas.style.display = "inline-block";
-                    }, 100);
-
-                    Swal.fire({
-                        title: 'Pix QR Code',
-                        html: `
-                            <div>
-                                <img src="${canvas.toDataURL()}" alt="QR Code" style="width: 300px; height: 300px;">
-                            </div>
-                            <div style="margin-top: 20px; text-align: left;">
-                                <div style="margin-top: 20px; text-align: left;">
-                                    <?php echo $pix_instructions_content; ?>
-                                </div>
-                                
-                                
-                            </div>
-                        `,
-                        showCloseButton: false,
-                        allowOutsideClick: false,
-                        confirmButtonText: 'Proceed to Payment',
-                        preConfirm: () => {
-                        Swal.fire({
-                                        title: 'Processing Payment...',
-                                        text: 'Please wait...',
-                                        showConfirmButton: false,
-                                        allowOutsideClick: false,
-                                        allowEscapeKey: false,
-                                        allowEnterKey: false,
-                                        onOpen: () => {
-                                            Swal.showLoading();
-                                        }
-                                    });
-                        return new Promise((resolve, reject) => {
-                            let attempts = 0;
-                            const maxAttempts = 2;
-
-                            function checkPaymentStatus() {
-                                if (attempts >= maxAttempts) {
-                                    // Display the info message when the max attempts are reached
-                                    Swal.fire({
-                                        title: 'Notice',
-                                        text: 'Your payment is still being processed. If the payment is successful, you will be notified via email.',
-                                        icon: 'info',
-                                        confirmButtonText: 'Close'
-                                    }).then(() => {
-                                        // This will be executed after the close button is clicked
-                                        localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
-                                        location.reload(); // Reload the page
-                                    });
-                                    return;
-                                }
-
-                                attempts++;
-
-                                jQuery.ajax({
-                                    type: 'POST',
-                                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                                    data: {
-                                        action: 'check_order_payment_status',
-                                        order_id: '<?php echo $order_id; ?>'
-                                    },
-                                    dataType: 'json',
-                                    success: function(response) {
-                                        if (response && response.status === 'completed') {
-                                            resolve('Payment confirmed successfully!');
-                                        } else {
-                                            setTimeout(checkPaymentStatus, 5000); // check again after 5 seconds
-                                        }
-                                    },
-                                    error: function() {
-                                        reject('Error checking payment status.');
-                                    }
-                                });
-                            }
-
-                            checkPaymentStatus();
-                        });
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Success',
-                            text: result.value,
-                            icon: 'success',
-                            confirmButtonText: 'Close'
-                        }).then(() => {
-                            // This will be executed after the close button is clicked
-                            localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
-                            location.reload(); // Reload the page
-                        });
-                    } else if (result.isDismissed) {
-                        Swal.fire({
-                            title: 'Notice',
-                            text: result.dismiss,
-                            icon: 'info',
-                            confirmButtonText: 'Close'
-                        }).then(() => {
-                            // This will be executed after the close button is clicked
-                            localStorage.setItem('qr_popup_shown_' + order_id, 'true'); // Set a flag in local storage
-                            location.reload(); // Reload the page
-                        });
-                    }
-                });
-                });
-            </script>
-            <?php
-        }
+        wp_localize_script('digiwoo-thank-you', 'digiwoo_params', $params);
     }
-    add_action('woocommerce_thankyou', 'digiwoo_qrcode_thank_you_js');
+    add_action('woocommerce_thankyou', 'digiwoo_qrcode_thank_you_enqueue_script');
+
 
     function custom_plugin_admin_scripts() {
         wp_enqueue_media();   // if you want to use the media uploader
