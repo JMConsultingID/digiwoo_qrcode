@@ -346,6 +346,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     function digiwoo_qrcode_thank_you_enqueue_script($order_id) {
         if (!$order_id) return;
 
+        $payment_method = $order->get_payment_method();
+        if ($payment_method !== 'pix_qrcode') {
+            return;
+        }
+
         wp_enqueue_script('digiwoo-thank-you', plugin_dir_url(__FILE__) . 'js/digiwoo-thank-you.js', array('jquery', 'sweetalert2'), null, true);
 
         $order = wc_get_order($order_id);
@@ -470,7 +475,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
         $payment_method = $order->get_payment_method();
         if ($payment_method !== 'pix_qrcode') {
-            return ''; // Kembali tanpa output jika metode pembayaran bukan pix_qrcode
+            return '';
         }
 
         $target_currency = 'BRL';
